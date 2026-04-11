@@ -1,25 +1,26 @@
-server:
-  port: ${PORT:8080}
-
 spring:
   datasource:
-    url: ${DATABASE_URL}
+    url: jdbc:${DATABASE_URL}
     driver-class-name: org.postgresql.Driver
     username: ${DB_USERNAME:}
     password: ${DB_PASSWORD:}
-    hikari:
-      maximum-pool-size: 5
+
+  data:
+    redis:
+      url: ${REDIS_URL}
 
   jpa:
     hibernate:
       ddl-auto: update
-    open-in-view: false
+    show-sql: true
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health
+server:
+  port: ${PORT:8080}
+  address: 0.0.0.0
+
+springdoc:
+  swagger-ui:
+    path: /swagger
