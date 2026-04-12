@@ -37,7 +37,7 @@ class SecurityConfig {
                         "/favicon.ico"
                     ).permitAll()
 
-                    .requestMatchers("/actuator/health").permitAll()
+                    .requestMatchers("/api/health").permitAll()
 
                     // Примеры публичных API
                     .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
