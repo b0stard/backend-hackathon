@@ -9,12 +9,26 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
       hibernate:
         format_sql: true
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${SPRING_MAIL_USERNAME}
+    password: ${SPRING_MAIL_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
 
 server:
   port: ${PORT:8080}
@@ -24,19 +38,6 @@ springdoc:
   swagger-ui:
     path: /swagger
 
-    flyway:
-      enabled: true
-      baseline-on-migrate: true
-      locations: classpath:db/migration
-      mail:
-        host: smtp.gmail.com
-        port:  587
-        username: ${SPRING_MAIL_USERNAME:local@gmail.com}
-        password: ${SPRING_MAIL_PASSWORD:local}
-        properties:
-          mail.smtp.auth: true
-          mail.smtp.starttls.enable: true
-
-          jwt:
-            secret: ${JWT_SECRET}
-            expiration: 86400000
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 86400000
