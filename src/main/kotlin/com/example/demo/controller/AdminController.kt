@@ -29,7 +29,11 @@ class AdminController(
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "200", description = "Отдел успешно создан"),
-            ApiResponse(responseCode = "400", description = "Некорректный запрос или отдел уже существует", content = [Content()])
+            ApiResponse(
+                responseCode = "400",
+                description = "Некорректный запрос или отдел уже существует",
+                content = [Content()]
+            )
         ]
     )
     @PostMapping("/departments")
@@ -46,7 +50,11 @@ class AdminController(
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "200", description = "Пользователь успешно создан"),
-            ApiResponse(responseCode = "400", description = "Некорректный запрос или email уже занят", content = [Content()]),
+            ApiResponse(
+                responseCode = "400",
+                description = "Некорректный запрос или email уже занят",
+                content = [Content()]
+            ),
             ApiResponse(responseCode = "404", description = "Отдел не найден", content = [Content()])
         ]
     )
