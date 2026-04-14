@@ -1,4 +1,4 @@
-package com.example.demo.domain
+package com.example.demo.dto.response
 
 data class HealthResponse(
     val status: String,
