@@ -42,20 +42,13 @@ class AuthController(
         cookie.isHttpOnly = true
         cookie.path = "/"
         cookie.maxAge = 24 * 60 * 60
-        cookie.secure = !httpRequest.serverName.contains("localhost")
+        cookie.secure = true
+        cookie.setAttribute("SameSite", "None")
         response.addCookie(cookie)
 
         return authService.toAuthResponse(user)
     }
 
-    @GetMapping("/me")
-    @Operation(summary = "Получить текущего авторизованного пользователя")
-    @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "200", description = "Пользователь авторизован"),
-            ApiResponse(responseCode = "401", description = "Пользователь не авторизован")
-        ]
-    )
     fun me(): AuthResponse {
         val user = authService.getCurrentUser()
         return authService.toAuthResponse(user)
