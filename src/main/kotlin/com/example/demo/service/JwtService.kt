@@ -2,35 +2,33 @@ package com.example.demo.service
 
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.nio.charset.StandardCharsets
-import java.util.Date
-import javax.crypto.SecretKey
+import java.security.Key
+import java.util.*
 
 @Service
 class JwtService(
+
     @Value("\${jwt.secret}")
     private val secret: String,
 
     @Value("\${jwt.expiration}")
-    private val jwtExpiration: Long
+    private val expiration: Long
 ) {
 
-    private fun getSigningKey(): SecretKey {
-        return Keys.hmacShaKeyFor(secret.toByteArray(StandardCharsets.UTF_8))
+    private fun getSignKey(): Key {
+        return Keys.hmacShaKeyFor(secret.toByteArray())
     }
 
     fun generateToken(email: String): String {
-        val now = Date()
-        val expiryDate = Date(now.time + jwtExpiration)
-
         return Jwts.builder()
-            .subject(email)
-            .issuedAt(now)
-            .expiration(expiryDate)
-            .signWith(getSigningKey())
+            .setSubject(email)
+            .setIssuedAt(Date())
+            .setExpiration(Date(System.currentTimeMillis() + expiration))
+            .signWith(getSignKey(), SignatureAlgorithm.HS256)
             .compact()
     }
 
@@ -39,7 +37,8 @@ class JwtService(
     }
 
     fun isTokenValid(token: String, email: String): Boolean {
-        return extractEmail(token) == email && !isTokenExpired(token)
+        val extractedEmail = extractEmail(token)
+        return extractedEmail == email && !isTokenExpired(token)
     }
 
     private fun isTokenExpired(token: String): Boolean {
@@ -48,9 +47,9 @@ class JwtService(
 
     private fun extractAllClaims(token: String): Claims {
         return Jwts.parser()
-            .verifyWith(getSigningKey())
+            .setSigningKey(getSignKey())
             .build()
-            .parseSignedClaims(token)
-            .payload
+            .parseClaimsJws(token)
+            .body
     }
 }

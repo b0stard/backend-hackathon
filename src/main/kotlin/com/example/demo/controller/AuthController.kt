@@ -12,7 +12,11 @@ import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/auth")
@@ -42,13 +46,22 @@ class AuthController(
         cookie.isHttpOnly = true
         cookie.path = "/"
         cookie.maxAge = 24 * 60 * 60
-        cookie.secure = true
+        cookie.secure = !httpRequest.serverName.contains("localhost")
         cookie.setAttribute("SameSite", "None")
+
         response.addCookie(cookie)
 
         return authService.toAuthResponse(user)
     }
 
+    @GetMapping("/me")
+    @Operation(summary = "Получить текущего авторизованного пользователя")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Пользователь авторизован"),
+            ApiResponse(responseCode = "401", description = "Пользователь не авторизован")
+        ]
+    )
     fun me(): AuthResponse {
         val user = authService.getCurrentUser()
         return authService.toAuthResponse(user)
@@ -62,10 +75,13 @@ class AuthController(
         ]
     )
     fun logout(response: HttpServletResponse): Map<String, String> {
-        val cookie = Cookie("jwt", null)
+        val cookie = Cookie("jwt", "")
         cookie.isHttpOnly = true
         cookie.path = "/"
         cookie.maxAge = 0
+        cookie.secure = true
+        cookie.setAttribute("SameSite", "None")
+
         response.addCookie(cookie)
 
         return mapOf("message" to "Logged out")
