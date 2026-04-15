@@ -3,6 +3,7 @@ package com.example.demo.config
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -11,6 +12,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 class SecurityConfig(
     private val jwtAuthenticationFilter: JwtAuthenticationFilter
 ) {
@@ -32,17 +34,16 @@ class SecurityConfig(
                         "/swagger/**",
                         "/swagger-ui/**",
                         "/swagger-ui.html",
-                        "/swagger-ui/index.html",
                         "/v3/api-docs/**"
                     ).permitAll()
 
                     .requestMatchers(HttpMethod.GET, "/api/departments").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/tasks/create-meta").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/tasks").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/tasks/*").permitAll()
 
-                    // Только для ADMIN
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                    // Все остальные требуют авторизацию
                     .anyRequest().authenticated()
             }
             .addFilterBefore(
