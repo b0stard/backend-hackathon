@@ -1,10 +1,12 @@
 package com.example.demo.service
 
 import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.SignatureAlgorithm
+import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.util.*
+import java.nio.charset.StandardCharsets
+import java.util.Date
+import javax.crypto.SecretKey
 
 @Service
 class JwtService(
@@ -12,30 +14,36 @@ class JwtService(
     private val secret: String
 ) {
 
-    private val expiration = 1000 * 60 * 60 * 24 // 1 день
+    private val expiration = 1000L * 60 * 60 * 24 // 1 день
+
+    private fun getSigningKey(): SecretKey {
+        return Keys.hmacShaKeyFor(secret.toByteArray(StandardCharsets.UTF_8))
+    }
 
     fun generateToken(email: String): String {
         return Jwts.builder()
-            .setSubject(email)
-            .setIssuedAt(Date())
-            .setExpiration(Date(System.currentTimeMillis() + expiration))
-            .signWith(SignatureAlgorithm.HS256, secret.toByteArray())
+            .subject(email)
+            .issuedAt(Date())
+            .expiration(Date(System.currentTimeMillis() + expiration))
+            .signWith(getSigningKey())
             .compact()
     }
 
     fun extractEmail(token: String): String {
         return Jwts.parser()
-            .setSigningKey(secret.toByteArray())
-            .parseClaimsJws(token)
-            .body
+            .verifyWith(getSigningKey())
+            .build()
+            .parseSignedClaims(token)
+            .payload
             .subject
     }
 
     fun isValid(token: String): Boolean {
         return try {
             Jwts.parser()
-                .setSigningKey(secret.toByteArray())
-                .parseClaimsJws(token)
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
             true
         } catch (e: Exception) {
             false
