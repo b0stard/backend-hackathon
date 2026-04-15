@@ -5,6 +5,7 @@ import com.example.demo.dto.request.UpdateTaskAssigneeRequest
 import com.example.demo.dto.request.UpdateTaskDeadlineRequest
 import com.example.demo.dto.request.UpdateTaskStatusRequest
 import com.example.demo.dto.response.CommentResponse
+import com.example.demo.dto.response.CreateTaskMetaResponse
 import com.example.demo.dto.response.DepartmentResponse
 import com.example.demo.dto.response.TaskDetailsResponse
 import com.example.demo.dto.response.TaskHistoryResponse
@@ -109,7 +110,34 @@ class TaskService(
             history = history
         )
     }
+    fun getCreateTaskMeta(): CreateTaskMetaResponse {
+        val users = userRepository.findAll().map {
+            UserShortResponse(
+                id = it.id,
+                name = it.name
+            )
+        }
 
+        val departments = departmentRepository.findAll().map {
+            DepartmentResponse(
+                id = it.id,
+                name = it.name
+            )
+        }
+
+        val priorities = com.example.demo.enums.TaskPriority.values()
+            .map { it.name }
+
+        val statuses = TaskStatus.values()
+            .map { it.name }
+
+        return CreateTaskMetaResponse(
+            users = users,
+            departments = departments,
+            priorities = priorities,
+            statuses = statuses
+        )
+    }
     @Transactional
     fun createTask(request: CreateTaskRequest, authorId: Long): TaskResponse {
         val author = userRepository.findById(authorId)

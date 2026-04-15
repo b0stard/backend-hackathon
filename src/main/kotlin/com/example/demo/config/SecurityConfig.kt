@@ -32,6 +32,7 @@ class SecurityConfig(
                         "/swagger-ui.html",
                         "/v3/api-docs/**"
                     ).permitAll()
+                    .requestMatchers("/api/tasks/create-meta").permitAll()
                     .anyRequest().authenticated()
             }
             .addFilterBefore(

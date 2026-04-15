@@ -4,6 +4,7 @@ import com.example.demo.dto.request.CreateTaskRequest
 import com.example.demo.dto.request.UpdateTaskAssigneeRequest
 import com.example.demo.dto.request.UpdateTaskDeadlineRequest
 import com.example.demo.dto.request.UpdateTaskStatusRequest
+import com.example.demo.dto.response.CreateTaskMetaResponse
 import com.example.demo.dto.response.TaskDetailsResponse
 import com.example.demo.dto.response.TaskResponse
 import com.example.demo.enums.TaskPriority
@@ -122,5 +123,9 @@ class TaskController(
         @RequestParam changedByUserId: Long
     ): TaskResponse {
         return taskService.updateTaskDeadline(id, request, changedByUserId)
+    }
+    @GetMapping("/create-meta")
+    fun getCreateTaskMeta(): CreateTaskMetaResponse {
+        return taskService.getCreateTaskMeta()
     }
 }
