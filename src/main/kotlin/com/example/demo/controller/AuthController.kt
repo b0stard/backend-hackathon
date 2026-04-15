@@ -4,6 +4,7 @@ import com.example.demo.dto.request.LoginRequest
 import com.example.demo.dto.response.AuthResponse
 import com.example.demo.service.AuthService
 import com.example.demo.service.JwtService
+import com.example.demo.service.UserService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
@@ -12,6 +13,7 @@ import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -23,7 +25,8 @@ import org.springframework.web.bind.annotation.RestController
 @Tag(name = "Auth", description = "Аутентификация и проверка текущего пользователя")
 class AuthController(
     private val authService: AuthService,
-    private val jwtService: JwtService
+    private val jwtService: JwtService,
+    private val userService: UserService
 ) {
 
     @PostMapping("/login")
@@ -35,23 +38,31 @@ class AuthController(
         ]
     )
     fun login(
-        @Valid @RequestBody request: LoginRequest,
-        response: HttpServletResponse,
-        httpRequest: HttpServletRequest
-    ): AuthResponse {
-        val user = authService.login(request)
+        @RequestBody request: LoginRequest,
+        response: HttpServletResponse
+    ): ResponseEntity<Any> {
+
+        val user = userService.findByEmail(request.email)
+            ?: return ResponseEntity.status(401).body("User not found")
+
+        if (!passwordEncoder.matches(request.password, user.password)) {
+            return ResponseEntity.status(401).body("Invalid password")
+        }
+
         val token = jwtService.generateToken(user.email)
 
         val cookie = Cookie("jwt", token)
         cookie.isHttpOnly = true
+        cookie.secure = true
         cookie.path = "/"
-        cookie.maxAge = 24 * 60 * 60
-        cookie.secure = !httpRequest.serverName.contains("localhost")
+        cookie.maxAge = 60 * 60 * 24
+
+        // обязательно для фронта
         cookie.setAttribute("SameSite", "None")
 
         response.addCookie(cookie)
 
-        return authService.toAuthResponse(user)
+        return ResponseEntity.ok("OK")
     }
 
     @GetMapping("/me")

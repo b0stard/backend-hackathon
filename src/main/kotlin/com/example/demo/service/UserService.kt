@@ -1,33 +1,33 @@
 package com.example.demo.service
 
-
-import com.example.demo.dto.response.UserResponse
 import com.example.demo.entity.User
-import org.springframework.stereotype.Service
+import com.example.demo.enums.Role
 import com.example.demo.repository.UserRepository
+import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.stereotype.Service
 
 @Service
-class UserService (
-private val userRepository: UserRepository
+class UserService(
+    private val userRepository: UserRepository,
+    private val passwordEncoder: PasswordEncoder
 ) {
-    fun getAllUsers(): List<UserResponse> {
-        return userRepository.findAll().map { it.toResponse() }
+
+    fun findByEmail(email: String): User? {
+        return userRepository.findByEmail(email)
     }
 
-    fun getUserById(id: Long): UserResponse {
-        val user = userRepository.findByIdWithDepartment(id)
-            .orElseThrow { RuntimeException("Пользователь не найден") }
-
-        return user.toResponse()
-    }
-    private fun User.toResponse(): UserResponse {
-        return UserResponse(
-            id = this.id,
-            name = this.name,
-            email = this.email,
-            role = this.role.name,
-            departmentId = this.department?.id,
-            departmentName = this.department?.name
+    fun createUser(email: String, password: String, name: String): User {
+        val user = User(
+            email = email,
+            password = passwordEncoder.encode(password),
+            name = name,
+            role = Role.USER
         )
+
+        return userRepository.save(user)
+    }
+
+    fun checkPassword(rawPassword: String, encodedPassword: String): Boolean {
+        return passwordEncoder.matches(rawPassword, encodedPassword)
     }
 }

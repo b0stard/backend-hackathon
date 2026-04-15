@@ -18,7 +18,7 @@ data class User(
     val email: String,
 
     @Column(nullable = false)
-    val password: String,
+    val password: String?,
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
