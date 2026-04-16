@@ -183,6 +183,22 @@ class TaskService(
             .orElseThrow { NotFoundException("Ошибка загрузки созданной задачи") }
             .toTaskResponse()
     }
+    fun getTasks(
+        assigneeId: Long?,
+        priority: TaskPriority?,
+        title: String?,
+        startDate: LocalDateTime?,
+        endDate: LocalDateTime?
+    ): List<TaskResponse> {
+
+        return taskRepository.findByFilters(
+            assigneeId,
+            priority,
+            title,
+            startDate,
+            endDate
+        ).map { it.toTaskResponse() }
+    }
 
     @Transactional
     fun updateTaskStatus(

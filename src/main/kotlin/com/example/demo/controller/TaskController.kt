@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @RestController
@@ -127,5 +128,23 @@ class TaskController(
     @GetMapping("/create-meta")
     fun getCreateTaskMeta(): CreateTaskMetaResponse {
         return taskService.getCreateTaskMeta()
+    }
+    @GetMapping
+    fun getTasks(
+        @RequestParam(required = false) assigneeId: Long?,
+        @RequestParam(required = false) priority: TaskPriority?,
+        @RequestParam(required = false) title: String?,
+        @RequestParam(required = false)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        startDate: LocalDate?,
+        @RequestParam(required = false)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        endDate: LocalDate?
+    ): List<TaskResponse> {
+
+        val start = startDate?.atStartOfDay()
+        val end = endDate?.atTime(23, 59, 59)
+
+        return taskService.getTasks(assigneeId, priority, title, start, end)
     }
 }
