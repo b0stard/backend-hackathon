@@ -36,4 +36,19 @@ class UserService(
     fun getAllUsers(): List<User> {
         return userRepository.findAll()
     }
+    fun createAdmin(email: String, password: String, name: String): User {
+        val existing = userRepository.findByEmail(email)
+        if (existing != null) {
+            throw RuntimeException("Admin already exists")
+        }
+
+        val admin = User(
+            email = email,
+            password = passwordEncoder.encode(password),
+            name = name,
+            role = Role.ADMIN
+        )
+
+        return userRepository.save(admin)
+    }
 }

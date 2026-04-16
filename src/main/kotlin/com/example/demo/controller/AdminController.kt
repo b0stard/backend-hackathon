@@ -4,6 +4,7 @@ import com.example.demo.dto.request.CreateDepartmentRequest
 import com.example.demo.dto.request.CreateUserRequest
 import com.example.demo.service.AdminService
 import com.example.demo.service.AuthService
+import com.example.demo.service.UserService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -12,7 +13,8 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/api/admin")
 class AdminController(
     private val adminService: AdminService,
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val userService: UserService
 ) {
 
     @GetMapping("/users")
@@ -96,6 +98,20 @@ class AdminController(
         } catch (e: RuntimeException) {
             val status = if (e.message == "Forbidden") 403 else 400
             ResponseEntity.status(status).body(e.message ?: "Error")
+        }
+    }
+
+    @PostMapping("/create")
+    fun createAdmin(
+        @RequestParam email: String,
+        @RequestParam password: String,
+        @RequestParam name: String
+    ): ResponseEntity<Any> {
+        return try {
+            val admin = userService.createAdmin(email, password, name)
+            ResponseEntity.ok(admin)
+        } catch (e: Exception) {
+            ResponseEntity.badRequest().body(e.message)
         }
     }
 }
