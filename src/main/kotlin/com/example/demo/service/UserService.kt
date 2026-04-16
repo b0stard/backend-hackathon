@@ -20,22 +20,26 @@ class UserService(
         return userRepository.findById(id).orElse(null)
     }
 
+    fun getAllUsers(): List<User> {
+        return userRepository.findAll()
+    }
+
     fun createUser(email: String, password: String, name: String): User {
+        val existing = userRepository.findByEmail(email)
+        if (existing != null) {
+            throw RuntimeException("User with this email already exists")
+        }
+
         val user = User(
             email = email,
             password = passwordEncoder.encode(password),
             name = name,
             role = Role.USER
         )
+
         return userRepository.save(user)
     }
 
-    fun checkPassword(rawPassword: String, encodedPassword: String): Boolean {
-        return passwordEncoder.matches(rawPassword, encodedPassword)
-    }
-    fun getAllUsers(): List<User> {
-        return userRepository.findAll()
-    }
     fun createAdmin(email: String, password: String, name: String): User {
         val existing = userRepository.findByEmail(email)
         if (existing != null) {
@@ -50,5 +54,9 @@ class UserService(
         )
 
         return userRepository.save(admin)
+    }
+
+    fun checkPassword(rawPassword: String, encodedPassword: String): Boolean {
+        return passwordEncoder.matches(rawPassword, encodedPassword)
     }
 }

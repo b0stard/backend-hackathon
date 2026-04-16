@@ -1,5 +1,6 @@
 package com.example.demo.controller
 
+import com.example.demo.dto.request.LoginRequest
 import com.example.demo.service.AuthService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -14,31 +15,30 @@ class AuthController(
 
     @PostMapping("/login")
     fun login(
-        @RequestParam email: String,
-        @RequestParam password: String,
+        @RequestBody request: LoginRequest,
         response: HttpServletResponse
     ): ResponseEntity<Any> {
-
         return try {
-            authService.login(email, password, response)
-            ResponseEntity.ok("Logged in")
+            authService.login(request.email, request.password, response)
+            ResponseEntity.ok(mapOf("message" to "Logged in"))
         } catch (e: Exception) {
-            ResponseEntity.status(401).body(e.message)
+            ResponseEntity.status(401).body(e.message ?: "Unauthorized")
         }
     }
 
     @GetMapping("/me")
     fun me(request: HttpServletRequest): ResponseEntity<Any> {
-        val cookie = request.cookies?.find { it.name == "userId" }
-            ?: return ResponseEntity.status(401).body("Not authorized")
-
-        val user = authService.getCurrentUser(request)
-        return ResponseEntity.ok(user)
+        return try {
+            val user = authService.getCurrentUser(request)
+            ResponseEntity.ok(user)
+        } catch (e: Exception) {
+            ResponseEntity.status(401).body(e.message ?: "Not authorized")
+        }
     }
 
     @PostMapping("/logout")
     fun logout(response: HttpServletResponse): ResponseEntity<Any> {
         authService.logout(response)
-        return ResponseEntity.ok("Logged out")
+        return ResponseEntity.ok(mapOf("message" to "Logged out"))
     }
 }
