@@ -23,8 +23,8 @@ class AuthService(
             throw RuntimeException("Wrong password")
         }
 
-        val sessionId = UUID.randomUUID().toString()
-        redisService.saveSession(sessionId, user.id)
+       val sessionId = UUID.randomUUID().toString()
+      //  redisService.saveSession(sessionId, user.id)
 
         return Pair(user, sessionId)
     }
