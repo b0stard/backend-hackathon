@@ -26,7 +26,6 @@ class AuthController(
             cookie.isHttpOnly = true
             cookie.path = "/"
             cookie.maxAge = 60 * 60 * 24
-
             response.addCookie(cookie)
 
             ResponseEntity.ok(user)
@@ -57,8 +56,7 @@ class AuthController(
     @GetMapping("/me")
     fun me(request: HttpServletRequest): ResponseEntity<Any> {
         return try {
-            val user = authService.getCurrentUser(request)
-            ResponseEntity.ok(user)
+            ResponseEntity.ok(authService.getCurrentUser(request))
         } catch (e: RuntimeException) {
             ResponseEntity.status(401).body(e.message ?: "Unauthorized")
         }

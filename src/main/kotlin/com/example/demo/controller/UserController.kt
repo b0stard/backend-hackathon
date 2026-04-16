@@ -1,6 +1,5 @@
 package com.example.demo.controller
 
-import com.example.demo.entity.User
 import com.example.demo.service.UserService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -11,6 +10,10 @@ class UserController(
     private val userService: UserService
 ) {
 
+    @GetMapping
+    fun getAllUsers(): ResponseEntity<Any> {
+        return ResponseEntity.ok(userService.getAllUsers())
+    }
 
     @GetMapping("/{id}")
     fun getUserById(@PathVariable id: Long): ResponseEntity<Any> {
@@ -20,20 +23,14 @@ class UserController(
         return ResponseEntity.ok(user)
     }
 
-
     @PostMapping("/register")
     fun register(
         @RequestParam email: String,
         @RequestParam password: String,
         @RequestParam name: String
     ): ResponseEntity<Any> {
-
-        val user = userService.createUser(email, password, name)
-
-        return ResponseEntity.ok(user)
-    }
-    @GetMapping
-    fun getAllUsers(): List<User> {
-        return userService.getAllUsers()
+        return ResponseEntity.ok(
+            userService.createUser(email, password, name)
+        )
     }
 }

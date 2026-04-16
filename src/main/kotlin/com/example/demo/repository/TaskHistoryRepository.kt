@@ -4,7 +4,9 @@ import com.example.demo.entity.TaskHistory
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
+import org.springframework.stereotype.Repository
 
+@Repository
 interface TaskHistoryRepository : JpaRepository<TaskHistory, Long> {
 
     fun findAllByTaskIdOrderByChangedAtDesc(taskId: Long): List<TaskHistory>

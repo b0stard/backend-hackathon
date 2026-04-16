@@ -32,7 +32,7 @@ class AdminController(
                 )
             )
         } catch (e: RuntimeException) {
-            val status = if (e.message == "Forbidden") 403 else 401
+            val status = if (e.message == "Forbidden") 403 else 400
             ResponseEntity.status(status).body(e.message)
         }
     }
@@ -44,15 +44,17 @@ class AdminController(
     ): ResponseEntity<Any> {
         return try {
             authService.requireAdmin(request)
-            ResponseEntity.ok(adminService.createDepartment(body.name, body.description))
+            ResponseEntity.ok(
+                adminService.createDepartment(body.name, body.description)
+            )
         } catch (e: RuntimeException) {
-            val status = if (e.message == "Forbidden") 403 else 401
+            val status = if (e.message == "Forbidden") 403 else 400
             ResponseEntity.status(status).body(e.message)
         }
     }
 
     @PatchMapping("/users/{id}/role")
-    fun changeRole(
+    fun changeUserRole(
         request: HttpServletRequest,
         @PathVariable id: Long,
         @RequestParam role: String
@@ -67,7 +69,7 @@ class AdminController(
     }
 
     @PatchMapping("/users/{id}/department")
-    fun changeDepartment(
+    fun changeUserDepartment(
         request: HttpServletRequest,
         @PathVariable id: Long,
         @RequestParam departmentId: Long

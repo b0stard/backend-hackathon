@@ -32,7 +32,7 @@ class AdminService(
             email = email,
             password = passwordEncoder.encode(password),
             name = name,
-            role = Role.valueOf(role),
+            role = Role.valueOf(role.uppercase()),
             department = department
         )
 
@@ -51,7 +51,7 @@ class AdminService(
         val user = userRepository.findById(userId)
             .orElseThrow { RuntimeException("User not found") }
 
-        user.role = Role.valueOf(role)
+        user.role = Role.valueOf(role.uppercase())
 
         return userRepository.save(user)
     }
@@ -66,5 +66,9 @@ class AdminService(
         user.department = department
 
         return userRepository.save(user)
+    }
+
+    fun getAllUsers(): List<User> {
+        return userRepository.findAll()
     }
 }
