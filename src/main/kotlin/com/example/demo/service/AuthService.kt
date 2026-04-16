@@ -1,51 +1,52 @@
 package com.example.demo.service
 
-import com.example.demo.dto.request.LoginRequest
-import com.example.demo.dto.response.AuthResponse
 import com.example.demo.entity.User
-import com.example.demo.exception.UnauthorizedException
-import com.example.demo.repository.UserRepository
-import org.springframework.security.core.context.SecurityContextHolder
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.stereotype.Service
+import java.util.*
 
 @Service
 class AuthService(
-    private val userRepository: UserRepository
+    private val userService: UserService,
+    private val redisService: RedisService
 ) {
 
-    fun login(request: LoginRequest): User {
-        val user = userRepository.findByEmail(request.email)
-            .orElseThrow { UnauthorizedException("Неверный email или пароль") }
+    fun login(email: String, password: String): Pair<User, String> {
 
-        validateCredentials(user, request.password)
+        val user = userService.findByEmail(email)
+            ?: throw RuntimeException("User not found")
 
-        return user
-    }
+        val encodedPassword = user.password
+            ?: throw RuntimeException("Password is null")
 
-    fun getCurrentUser(): User {
-        val authentication = SecurityContextHolder.getContext().authentication
-            ?: throw UnauthorizedException("Пользователь не авторизован")
-
-        val email = authentication.name
-
-        return userRepository.findByEmail(email)
-            .orElseThrow { UnauthorizedException("Пользователь не найден") }
-    }
-
-    fun toAuthResponse(user: User): AuthResponse {
-        return AuthResponse(
-            id = user.id,
-            name = user.name,
-            email = user.email,
-            role = user.role.name,
-            departmentId = user.department?.id,
-            departmentName = user.department?.name
-        )
-    }
-
-    private fun validateCredentials(user: User, rawPassword: String) {
-        if (user.password != rawPassword) {
-            throw UnauthorizedException("Неверный email или пароль")
+        if (!userService.checkPassword(password, encodedPassword)) {
+            throw RuntimeException("Wrong password")
         }
+
+        val sessionId = UUID.randomUUID().toString()
+
+        redisService.saveSession(sessionId, user.id)
+
+        return Pair(user, sessionId)
+    }
+
+    fun logout(sessionId: String?) {
+        if (sessionId != null) {
+            redisService.deleteSession(sessionId)
+        }
+    }
+
+    fun getCurrentUser(request: HttpServletRequest): User {
+
+        val sessionId = request.cookies
+            ?.find { it.name == "sessionId" }
+            ?.value
+            ?: throw RuntimeException("Not authorized")
+
+        val userId = redisService.getUserId(sessionId)
+            ?: throw RuntimeException("Session expired")
+
+        return userService.getUserById(userId)
+            ?: throw RuntimeException("User not found")
     }
 }
