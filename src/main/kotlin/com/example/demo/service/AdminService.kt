@@ -52,7 +52,6 @@ class AdminService(
             .orElseThrow { RuntimeException("User not found") }
 
         user.role = Role.valueOf(role.uppercase())
-
         return userRepository.save(user)
     }
 
@@ -64,7 +63,6 @@ class AdminService(
             .orElseThrow { RuntimeException("Department not found") }
 
         user.department = department
-
         return userRepository.save(user)
     }
 

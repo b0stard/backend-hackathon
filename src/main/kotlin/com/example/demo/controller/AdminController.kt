@@ -15,6 +15,17 @@ class AdminController(
     private val authService: AuthService
 ) {
 
+    @GetMapping("/users")
+    fun getAllUsers(request: HttpServletRequest): ResponseEntity<Any> {
+        return try {
+            authService.requireAdmin(request)
+            ResponseEntity.ok(adminService.getAllUsers())
+        } catch (e: RuntimeException) {
+            val status = if (e.message == "Forbidden") 403 else 401
+            ResponseEntity.status(status).body(e.message ?: "Unauthorized")
+        }
+    }
+
     @PostMapping("/users")
     fun createUser(
         request: HttpServletRequest,
@@ -22,18 +33,19 @@ class AdminController(
     ): ResponseEntity<Any> {
         return try {
             authService.requireAdmin(request)
-            ResponseEntity.ok(
-                adminService.createUser(
-                    email = body.email,
-                    password = body.password,
-                    name = body.name,
-                    role = body.role,
-                    departmentId = body.departmentId
-                )
+
+            val user = adminService.createUser(
+                email = body.email,
+                password = body.password,
+                name = body.name,
+                role = body.role,
+                departmentId = body.departmentId
             )
+
+            ResponseEntity.ok(user)
         } catch (e: RuntimeException) {
             val status = if (e.message == "Forbidden") 403 else 400
-            ResponseEntity.status(status).body(e.message)
+            ResponseEntity.status(status).body(e.message ?: "Error")
         }
     }
 
@@ -44,12 +56,16 @@ class AdminController(
     ): ResponseEntity<Any> {
         return try {
             authService.requireAdmin(request)
-            ResponseEntity.ok(
-                adminService.createDepartment(body.name, body.description)
+
+            val department = adminService.createDepartment(
+                name = body.name,
+                description = body.description
             )
+
+            ResponseEntity.ok(department)
         } catch (e: RuntimeException) {
             val status = if (e.message == "Forbidden") 403 else 400
-            ResponseEntity.status(status).body(e.message)
+            ResponseEntity.status(status).body(e.message ?: "Error")
         }
     }
 
@@ -64,7 +80,7 @@ class AdminController(
             ResponseEntity.ok(adminService.changeUserRole(id, role))
         } catch (e: RuntimeException) {
             val status = if (e.message == "Forbidden") 403 else 400
-            ResponseEntity.status(status).body(e.message)
+            ResponseEntity.status(status).body(e.message ?: "Error")
         }
     }
 
@@ -79,7 +95,7 @@ class AdminController(
             ResponseEntity.ok(adminService.changeUserDepartment(id, departmentId))
         } catch (e: RuntimeException) {
             val status = if (e.message == "Forbidden") 403 else 400
-            ResponseEntity.status(status).body(e.message)
+            ResponseEntity.status(status).body(e.message ?: "Error")
         }
     }
 }
