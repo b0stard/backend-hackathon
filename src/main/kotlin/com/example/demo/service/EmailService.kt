@@ -10,11 +10,19 @@ class EmailService(
 ) {
 
     fun sendSimpleEmail(to: String, subject: String, text: String) {
-
         val message = SimpleMailMessage()
         message.setTo(to)
         message.subject = subject
         message.text = text
+
+        mailSender.send(message)
+    }
+
+    fun sendTaskAssignedEmail(to: String, taskTitle: String) {
+        val message = SimpleMailMessage()
+        message.setTo(to)
+        message.subject = "Вам назначена новая задача"
+        message.text = "Вам назначена задача: $taskTitle"
 
         mailSender.send(message)
     }
