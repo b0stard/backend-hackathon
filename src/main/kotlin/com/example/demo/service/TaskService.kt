@@ -4,6 +4,7 @@ import com.example.demo.dto.request.CreateTaskRequest
 import com.example.demo.dto.request.UpdateTaskStatusRequest
 import com.example.demo.dto.response.TaskResponse
 import com.example.demo.entity.Task
+import com.example.demo.enums.TaskPriority
 import com.example.demo.enums.TaskStatus
 import com.example.demo.exception.NotFoundException
 import com.example.demo.repository.DepartmentRepository
@@ -21,10 +22,32 @@ class TaskService(
     private val emailService: EmailService
 ) {
 
-    fun getTasks(): List<TaskResponse> {
+    fun getTasks(
+        assigneeId: Long?,
+        priority: TaskPriority?,
+        title: String?
+    ): List<TaskResponse> {
+
         return taskRepository.findAll()
+            .asSequence()
+
+            .filter { task ->
+                assigneeId == null || task.assignee.id == assigneeId
+            }
+
+            .filter { task ->
+                priority == null || task.priority == priority
+            }
+
+            .filter { task ->
+                title.isNullOrBlank() || task.title.lowercase().contains(title.lowercase())
+            }
+
             .sortedByDescending { it.createdAt }
+
             .map { it.toTaskResponse() }
+
+            .toList()
     }
 
     fun getTaskById(id: Long): TaskResponse? {
