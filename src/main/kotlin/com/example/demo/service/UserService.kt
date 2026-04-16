@@ -27,7 +27,6 @@ class UserService(
             name = name,
             role = Role.USER
         )
-
         return userRepository.save(user)
     }
 

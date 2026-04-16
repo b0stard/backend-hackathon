@@ -14,10 +14,10 @@ class SecurityConfig {
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .csrf { it.disable() }
-            .sessionManagement { it.disable() }
             .authorizeHttpRequests {
                 it.anyRequest().permitAll()
             }
+
         return http.build()
     }
 }

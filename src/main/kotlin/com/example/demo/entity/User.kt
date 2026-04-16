@@ -22,11 +22,11 @@ data class User(
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    val role: Role,
+    var role: Role,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id")
-    val department: Department? = null,
+    var department: Department? = null,
 
     @Column(name = "is_active", nullable = false)
     val isActive: Boolean = true,

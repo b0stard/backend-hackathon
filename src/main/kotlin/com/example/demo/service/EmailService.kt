@@ -9,26 +9,12 @@ class EmailService(
     private val mailSender: JavaMailSender
 ) {
 
-    fun sendTaskAssignedEmail(to: String, taskTitle: String, deadline: String) {
+    fun sendSimpleEmail(to: String, subject: String, text: String) {
+
         val message = SimpleMailMessage()
         message.setTo(to)
-        message.subject = "Вам назначена новая задача"
-        message.text = """
-            Вам назначена новая задача: $taskTitle
-            
-            Срок выполнения: $deadline
-            
-            Пожалуйста, зайдите в систему и ознакомьтесь с деталями.
-        """.trimIndent()
-
-        mailSender.send(message)
-    }
-
-    fun sendTestEmail(to: String) {
-        val message = SimpleMailMessage()
-        message.setTo(to)
-        message.subject = "Тестовое письмо"
-        message.text = "Если вы получили это письмо, SMTP настроен правильно."
+        message.subject = subject
+        message.text = text
 
         mailSender.send(message)
     }

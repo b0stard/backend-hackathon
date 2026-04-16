@@ -1,9 +1,10 @@
 package com.example.demo.service
 
 import com.example.demo.entity.User
+import com.example.demo.enums.Role
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.stereotype.Service
-import java.util.*
+import java.util.UUID
 
 @Service
 class AuthService(
@@ -12,19 +13,17 @@ class AuthService(
 ) {
 
     fun login(email: String, password: String): Pair<User, String> {
-
         val user = userService.findByEmail(email)
             ?: throw RuntimeException("User not found")
 
         val encodedPassword = user.password
-            ?: throw RuntimeException("Password is null")
+            ?: throw RuntimeException("User password is null")
 
         if (!userService.checkPassword(password, encodedPassword)) {
             throw RuntimeException("Wrong password")
         }
 
         val sessionId = UUID.randomUUID().toString()
-
         redisService.saveSession(sessionId, user.id)
 
         return Pair(user, sessionId)
@@ -37,7 +36,6 @@ class AuthService(
     }
 
     fun getCurrentUser(request: HttpServletRequest): User {
-
         val sessionId = request.cookies
             ?.find { it.name == "sessionId" }
             ?.value
@@ -48,5 +46,15 @@ class AuthService(
 
         return userService.getUserById(userId)
             ?: throw RuntimeException("User not found")
+    }
+
+    fun requireAdmin(request: HttpServletRequest): User {
+        val user = getCurrentUser(request)
+
+        if (user.role != Role.ADMIN) {
+            throw RuntimeException("Forbidden")
+        }
+
+        return user
     }
 }

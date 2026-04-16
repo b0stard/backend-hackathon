@@ -19,17 +19,20 @@ class AuthController(
         @RequestParam password: String,
         response: HttpServletResponse
     ): ResponseEntity<Any> {
+        return try {
+            val (user, sessionId) = authService.login(email, password)
 
-        val (user, sessionId) = authService.login(email, password)
+            val cookie = Cookie("sessionId", sessionId)
+            cookie.isHttpOnly = true
+            cookie.path = "/"
+            cookie.maxAge = 60 * 60 * 24
 
-        val cookie = Cookie("sessionId", sessionId)
-        cookie.isHttpOnly = true
-        cookie.path = "/"
-        cookie.maxAge = 60 * 60 * 24
+            response.addCookie(cookie)
 
-        response.addCookie(cookie)
-
-        return ResponseEntity.ok(user)
+            ResponseEntity.ok(user)
+        } catch (e: RuntimeException) {
+            ResponseEntity.status(401).body(e.message ?: "Unauthorized")
+        }
     }
 
     @PostMapping("/logout")
@@ -37,7 +40,6 @@ class AuthController(
         request: HttpServletRequest,
         response: HttpServletResponse
     ): ResponseEntity<Any> {
-
         val sessionId = request.cookies
             ?.find { it.name == "sessionId" }
             ?.value
@@ -49,12 +51,16 @@ class AuthController(
         cookie.maxAge = 0
         response.addCookie(cookie)
 
-        return ResponseEntity.ok("Logged out")
+        return ResponseEntity.ok(mapOf("message" to "Logged out"))
     }
 
     @GetMapping("/me")
     fun me(request: HttpServletRequest): ResponseEntity<Any> {
-        val user = authService.getCurrentUser(request)
-        return ResponseEntity.ok(user)
+        return try {
+            val user = authService.getCurrentUser(request)
+            ResponseEntity.ok(user)
+        } catch (e: RuntimeException) {
+            ResponseEntity.status(401).body(e.message ?: "Unauthorized")
+        }
     }
 }
