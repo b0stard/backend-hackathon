@@ -19,11 +19,11 @@ private val logger = LoggerFactory.getLogger(this.javaClass)
     ): CommandLineRunner {
         return CommandLineRunner {
 
-            val existing = userRepository.findByEmail("admin@mail.com")
+            val existing = userRepository.findByEmail("admin@gmail.com")
 
             if (existing == null) {
                 val admin = User(
-                    email = "admin@mail.com",
+                    email = "admin@gmail.com",
                     password = passwordEncoder.encode("admin123"),
                     name = "Admin",
                     role = Role.ADMIN,
@@ -32,7 +32,7 @@ private val logger = LoggerFactory.getLogger(this.javaClass)
 
                 userRepository.save(admin)
 
-                logger.info("ADMIN CREATED: admin@mail.com / admin123")
+                logger.info("ADMIN CREATED: admin@gmail.com / admin123")
             } else {
                 logger.info("ADMIN ALREADY EXISTS")
             }
