@@ -8,9 +8,6 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface TaskHistoryRepository : JpaRepository<TaskHistory, Long> {
-
-    fun findAllByTaskIdOrderByChangedAtDesc(taskId: Long): List<TaskHistory>
-
     @Query(
         """
         select th
