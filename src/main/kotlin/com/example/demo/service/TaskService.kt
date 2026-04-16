@@ -17,7 +17,8 @@ import java.time.LocalDateTime
 class TaskService(
     private val taskRepository: TaskRepository,
     private val userRepository: UserRepository,
-    private val departmentRepository: DepartmentRepository
+    private val departmentRepository: DepartmentRepository,
+    private val emailService: EmailService
 ) {
 
     fun getTasks(): List<TaskResponse> {
@@ -55,6 +56,17 @@ class TaskService(
         )
 
         val savedTask = taskRepository.save(task)
+
+        try {
+            emailService.sendTaskAssignedEmail(
+                to = assignee.email,
+                taskTitle = savedTask.title,
+                deadline = savedTask.deadline.toString()
+            )
+        } catch (_: Exception) {
+
+        }
+
         return savedTask.toTaskResponse()
     }
 
