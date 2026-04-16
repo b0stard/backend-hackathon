@@ -167,6 +167,7 @@ class TaskService(
                 task = savedTask,
                 field = "created",
                 oldValue = null,
+                deadline = savedTask.deadline.toString(),
                 newValue = "Задача создана",
                 changedByUser = author
             )
@@ -175,7 +176,7 @@ class TaskService(
         emailService.sendTaskAssignedEmail(
             to = assignee.email,
             taskTitle = savedTask.title,
-            deadline = savedTask.deadline.toString()
+            deadline = savedTask.deadline
         )
 
         return taskRepository.findByIdWithRelations(savedTask.id)

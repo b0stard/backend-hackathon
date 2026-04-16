@@ -8,25 +8,26 @@ import java.time.LocalDateTime
 data class TaskHistory(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
+    var id: Long = 0,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "task_id", nullable = false)
-    val task: Task,
+    var task: Task,
 
     @Column(nullable = false)
-    val field: String,
+    var field: String,
+    var deadline: String? = null,
 
     @Column(name = "old_value", columnDefinition = "text")
-    val oldValue: String? = null,
+    var oldValue: String? = null,
 
     @Column(name = "new_value", columnDefinition = "text")
-    val newValue: String? = null,
+    var newValue: String? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "changed_by_user_id", nullable = false)
-    val changedByUser: User,
+    var changedByUser: User,
 
     @Column(name = "changed_at", nullable = false)
-    val changedAt: LocalDateTime = LocalDateTime.now()
+    var changedAt: LocalDateTime = LocalDateTime.now()
 )
