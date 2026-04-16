@@ -16,6 +16,29 @@ interface TaskRepository : JpaRepository<Task, Long> {
         join fetch t.author
         join fetch t.assignee
         join fetch t.department
+        order by t.createdAt desc
+    """)
+    fun findAllWithRelations(): List<Task>
+
+    @Query("""
+        select t
+        from Task t
+        join fetch t.author
+        join fetch t.assignee
+        join fetch t.department
+        where t.assignee.id = :assigneeId
+        order by t.createdAt desc
+    """)
+    fun findAllByAssigneeIdWithRelations(
+        @Param("assigneeId") assigneeId: Long
+    ): List<Task>
+
+    @Query("""
+        select t
+        from Task t
+        join fetch t.author
+        join fetch t.assignee
+        join fetch t.department
         where (:assigneeId is null or t.assignee.id = :assigneeId)
           and (:priority is null or t.priority = :priority)
           and (:title is null or lower(t.title) like lower(concat('%', :title, '%')))
