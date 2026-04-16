@@ -1,5 +1,6 @@
 package com.example.demo.controller
 
+import com.example.demo.dto.request.AssignDepartmentRequest
 import com.example.demo.dto.request.CreateDepartmentRequest
 import com.example.demo.dto.request.CreateUserRequest
 import com.example.demo.service.AdminService
@@ -70,7 +71,24 @@ class AdminController(
             ResponseEntity.status(status).body(e.message ?: "Error")
         }
     }
+    @PostMapping("/assign-department")
+    fun assignDepartment(
+        @RequestBody request: AssignDepartmentRequest,
+        httpRequest: HttpServletRequest
+    ): ResponseEntity<Any> {
+        return try {
+            authService.requireAdmin(httpRequest)
 
+            val user = adminService.assignDepartment(
+                request.userId,
+                request.departmentId
+            )
+
+            ResponseEntity.ok(user)
+        } catch (e: Exception) {
+            ResponseEntity.badRequest().body(e.message)
+        }
+    }
     @PatchMapping("/users/{id}/role")
     fun changeUserRole(
         request: HttpServletRequest,

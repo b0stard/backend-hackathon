@@ -69,4 +69,15 @@ class AdminService(
     fun getAllUsers(): List<User> {
         return userRepository.findAll()
     }
+    fun assignDepartment(userId: Long, departmentId: Long): User {
+        val user = userRepository.findById(userId)
+            .orElseThrow { RuntimeException("User not found") }
+
+        val department = departmentRepository.findById(departmentId)
+            .orElseThrow { RuntimeException("Department not found") }
+
+        user.department = department
+
+        return userRepository.save(user)
+    }
 }
