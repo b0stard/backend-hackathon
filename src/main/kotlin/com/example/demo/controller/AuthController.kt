@@ -65,6 +65,17 @@ class AuthController(
 
         return ResponseEntity.ok("Logged out")
     }
+    @PostMapping("/register")
+    fun register(
+        @RequestParam email: String,
+        @RequestParam password: String,
+        @RequestParam name: String
+    ): ResponseEntity<Any> {
+
+        val user = userService.createUser(email, password, name)
+
+        return ResponseEntity.ok(user)
+    }
 
     @GetMapping("/me")
     fun me(request: HttpServletRequest): ResponseEntity<Any> {
