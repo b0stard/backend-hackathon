@@ -1,102 +1,85 @@
 package com.example.demo.controller
 
-import com.example.demo.dto.request.LoginRequest
-import com.example.demo.dto.response.AuthResponse
-import com.example.demo.service.AuthService
-import com.example.demo.service.JwtService
+import com.example.demo.service.RedisService
 import com.example.demo.service.UserService
-import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.responses.ApiResponse
-import io.swagger.v3.oas.annotations.responses.ApiResponses
-import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
-import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import java.util.*
 
 @RestController
 @RequestMapping("/api/auth")
-@Tag(name = "Auth", description = "Аутентификация и проверка текущего пользователя")
 class AuthController(
-    private val authService: AuthService,
-    private val jwtService: JwtService,
     private val userService: UserService,
-    private val passwordEncoder: PasswordEncoder
+    private val redisService: RedisService
 ) {
 
     @PostMapping("/login")
-    @Operation(summary = "Логин пользователя")
-    @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "200", description = "Успешный логин"),
-            ApiResponse(responseCode = "401", description = "Неверный email или пароль")
-        ]
-    )
     fun login(
-        @RequestBody request: LoginRequest,
+        @RequestParam email: String,
+        @RequestParam password: String,
         response: HttpServletResponse
     ): ResponseEntity<Any> {
 
-        val user = userService.findByEmail(request.email)
+        val user = userService.findByEmail(email)
             ?: return ResponseEntity.status(401).body("User not found")
 
-        if (!passwordEncoder.matches(request.password, user.password)) {
-            return ResponseEntity.status(401).body("Invalid password")
+        if (!userService.checkPassword(password, user.password!!)) {
+            return ResponseEntity.status(401).body("Wrong password")
         }
 
-        val token = jwtService.generateToken(user.email)
+        val sessionId = UUID.randomUUID().toString()
 
-        val cookie = Cookie("jwt", token)
+        redisService.saveSession(sessionId, user.id)
+
+        val cookie = Cookie("sessionId", sessionId)
         cookie.isHttpOnly = true
-        cookie.secure = true
         cookie.path = "/"
         cookie.maxAge = 60 * 60 * 24
 
-        // обязательно для фронта
-        cookie.setAttribute("SameSite", "None")
-
         response.addCookie(cookie)
 
-        return ResponseEntity.ok("OK")
-    }
-
-    @GetMapping("/me")
-    @Operation(summary = "Получить текущего авторизованного пользователя")
-    @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "200", description = "Пользователь авторизован"),
-            ApiResponse(responseCode = "401", description = "Пользователь не авторизован")
-        ]
-    )
-    fun me(): AuthResponse {
-        val user = authService.getCurrentUser()
-        return authService.toAuthResponse(user)
+        return ResponseEntity.ok(user)
     }
 
     @PostMapping("/logout")
-    @Operation(summary = "Выход из системы")
-    @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "200", description = "Успешный выход")
-        ]
-    )
-    fun logout(response: HttpServletResponse): Map<String, String> {
-        val cookie = Cookie("jwt", "")
-        cookie.isHttpOnly = true
+    fun logout(
+        request: HttpServletRequest,
+        response: HttpServletResponse
+    ): ResponseEntity<Any> {
+
+        val sessionId = request.cookies
+            ?.find { it.name == "sessionId" }
+            ?.value
+
+        if (sessionId != null) {
+            redisService.deleteSession(sessionId)
+        }
+
+        val cookie = Cookie("sessionId", "")
         cookie.path = "/"
         cookie.maxAge = 0
-        cookie.secure = true
-        cookie.setAttribute("SameSite", "None")
-
         response.addCookie(cookie)
 
-        return mapOf("message" to "Logged out")
+        return ResponseEntity.ok("Logged out")
+    }
+
+    @GetMapping("/me")
+    fun me(request: HttpServletRequest): ResponseEntity<Any> {
+
+        val sessionId = request.cookies
+            ?.find { it.name == "sessionId" }
+            ?.value
+            ?: return ResponseEntity.status(401).body("Not authorized")
+
+        val userId = redisService.getUserId(sessionId)
+            ?: return ResponseEntity.status(401).body("Session expired")
+
+        val user = userService.findById(userId)
+            ?: return ResponseEntity.status(404).body("User not found")
+
+        return ResponseEntity.ok(user)
     }
 }
