@@ -32,7 +32,7 @@ class AuthController(
         val cookie = request.cookies?.find { it.name == "userId" }
             ?: return ResponseEntity.status(401).body("Not authorized")
 
-        val user = authService.getMe(cookie.value.toLong())
+        val user = authService.getCurrentUser(request)
         return ResponseEntity.ok(user)
     }
 
