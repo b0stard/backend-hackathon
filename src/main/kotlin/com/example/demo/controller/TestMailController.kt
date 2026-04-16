@@ -11,20 +11,16 @@ class TestMailController(
 ) {
 
     @PostMapping("/send")
-    fun sendMail(
-        @RequestParam to: String
-    ): ResponseEntity<Any> {
-
+    fun sendMail(@RequestParam to: String): ResponseEntity<Any> {
         return try {
             emailService.sendSimpleEmail(
                 to = to,
-                subject = "Test email 🚀",
-                text = "Привет! Это тестовое письмо с твоего backend."
+                subject = "Test email",
+                text = "Привет! Это тестовое письмо."
             )
-
             ResponseEntity.ok("Email sent")
         } catch (e: Exception) {
-            ResponseEntity.status(500).body(e.message)
+            ResponseEntity.status(500).body(e.message ?: "Mail send error")
         }
     }
 }
