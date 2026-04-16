@@ -3,6 +3,7 @@ package com.example.demo.config
 import com.example.demo.entity.User
 import com.example.demo.enums.Role
 import com.example.demo.repository.UserRepository
+import org.slf4j.LoggerFactory
 import org.springframework.boot.CommandLineRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -10,7 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 
 @Configuration
 class AdminInitializer {
-
+private val logger = LoggerFactory.getLogger(this.javaClass)
     @Bean
     fun initAdmin(
         userRepository: UserRepository,
@@ -31,9 +32,9 @@ class AdminInitializer {
 
                 userRepository.save(admin)
 
-                println("ADMIN CREATED: admin@mail.com / admin123")
+                logger.info("ADMIN CREATED: admin@mail.com / admin123")
             } else {
-                println("ADMIN ALREADY EXISTS")
+                logger.info("ADMIN ALREADY EXISTS")
             }
         }
     }
