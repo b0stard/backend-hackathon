@@ -33,4 +33,7 @@ class UserService(
     fun checkPassword(rawPassword: String, encodedPassword: String): Boolean {
         return passwordEncoder.matches(rawPassword, encodedPassword)
     }
+    fun getAllUsers(): List<User> {
+        return userRepository.findAll()
+    }
 }

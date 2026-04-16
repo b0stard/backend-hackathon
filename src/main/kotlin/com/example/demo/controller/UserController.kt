@@ -1,5 +1,6 @@
 package com.example.demo.controller
 
+import com.example.demo.entity.User
 import com.example.demo.service.UserService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -30,5 +31,9 @@ class UserController(
         val user = userService.createUser(email, password, name)
 
         return ResponseEntity.ok(user)
+    }
+    @GetMapping
+    fun getAllUsers(): List<User> {
+        return userService.getAllUsers()
     }
 }
