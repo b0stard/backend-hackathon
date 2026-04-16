@@ -1,7 +1,6 @@
 package com.example.demo.controller
 
 import com.example.demo.service.AuthService
-import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.ResponseEntity
@@ -19,46 +18,27 @@ class AuthController(
         @RequestParam password: String,
         response: HttpServletResponse
     ): ResponseEntity<Any> {
+
         return try {
-            val (user, sessionId) = authService.login(email, password)
-
-            val cookie = Cookie("sessionId", sessionId)
-            cookie.isHttpOnly = true
-            cookie.path = "/"
-            cookie.maxAge = 60 * 60 * 24
-            response.addCookie(cookie)
-
-            ResponseEntity.ok(user)
-        } catch (e: RuntimeException) {
-            ResponseEntity.status(401).body(e.message ?: "Unauthorized")
+            authService.login(email, password, response)
+            ResponseEntity.ok("Logged in")
+        } catch (e: Exception) {
+            ResponseEntity.status(401).body(e.message)
         }
-    }
-
-    @PostMapping("/logout")
-    fun logout(
-        request: HttpServletRequest,
-        response: HttpServletResponse
-    ): ResponseEntity<Any> {
-        val sessionId = request.cookies
-            ?.find { it.name == "sessionId" }
-            ?.value
-
-        authService.logout(sessionId)
-
-        val cookie = Cookie("sessionId", "")
-        cookie.path = "/"
-        cookie.maxAge = 0
-        response.addCookie(cookie)
-
-        return ResponseEntity.ok(mapOf("message" to "Logged out"))
     }
 
     @GetMapping("/me")
     fun me(request: HttpServletRequest): ResponseEntity<Any> {
-        return try {
-            ResponseEntity.ok(authService.getCurrentUser(request))
-        } catch (e: RuntimeException) {
-            ResponseEntity.status(401).body(e.message ?: "Unauthorized")
-        }
+        val cookie = request.cookies?.find { it.name == "userId" }
+            ?: return ResponseEntity.status(401).body("Not authorized")
+
+        val user = authService.getMe(cookie.value.toLong())
+        return ResponseEntity.ok(user)
+    }
+
+    @PostMapping("/logout")
+    fun logout(response: HttpServletResponse): ResponseEntity<Any> {
+        authService.logout(response)
+        return ResponseEntity.ok("Logged out")
     }
 }

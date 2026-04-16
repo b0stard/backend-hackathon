@@ -1,60 +1,43 @@
 package com.example.demo.service
 
 import com.example.demo.entity.User
-import com.example.demo.enums.Role
-import jakarta.servlet.http.HttpServletRequest
+import com.example.demo.exception.NotFoundException
+import com.example.demo.repository.UserRepository
+import jakarta.servlet.http.Cookie
+import jakarta.servlet.http.HttpServletResponse
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
-import java.util.UUID
 
 @Service
 class AuthService(
-    private val userService: UserService,
-    private val redisService: RedisService
+    private val userRepository: UserRepository,
+    private val passwordEncoder: PasswordEncoder
 ) {
 
-    fun login(email: String, password: String): Pair<User, String> {
-        val user = userService.findByEmail(email)
-            ?: throw RuntimeException("User not found")
+    fun login(email: String, password: String, response: HttpServletResponse) {
+        val user = userRepository.findByEmail(email)
+            ?: throw NotFoundException("User not found")
 
-        val encodedPassword = user.password
-            ?: throw RuntimeException("User password is null")
-
-        if (!userService.checkPassword(password, encodedPassword)) {
+        if (!passwordEncoder.matches(password, user.password)) {
             throw RuntimeException("Wrong password")
         }
 
-       val sessionId = UUID.randomUUID().toString()
-      //  redisService.saveSession(sessionId, user.id)
+        val cookie = Cookie("userId", user.id.toString())
+        cookie.path = "/"
+        cookie.isHttpOnly = true
 
-        return Pair(user, sessionId)
+        response.addCookie(cookie)
     }
 
-    fun logout(sessionId: String?) {
-        if (sessionId != null) {
-            redisService.deleteSession(sessionId)
-        }
+    fun getMe(userId: Long): User {
+        return userRepository.findById(userId)
+            .orElseThrow { NotFoundException("User not found") }
     }
 
-    fun getCurrentUser(request: HttpServletRequest): User {
-        val sessionId = request.cookies
-            ?.find { it.name == "sessionId" }
-            ?.value
-            ?: throw RuntimeException("Not authorized")
-
-        val userId = redisService.getUserId(sessionId)
-            ?: throw RuntimeException("Session expired")
-
-        return userService.getUserById(userId)
-            ?: throw RuntimeException("User not found")
-    }
-
-    fun requireAdmin(request: HttpServletRequest): User {
-        val user = getCurrentUser(request)
-
-        if (user.role != Role.ADMIN) {
-            throw RuntimeException("Forbidden")
-        }
-
-        return user
+    fun logout(response: HttpServletResponse) {
+        val cookie = Cookie("userId", "")
+        cookie.maxAge = 0
+        cookie.path = "/"
+        response.addCookie(cookie)
     }
 }
