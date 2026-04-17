@@ -4,14 +4,11 @@ import jakarta.persistence.*
 
 @Entity
 @Table(name = "departments")
-data class Department(
+class Department(
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
+    var id: Long? = null,
 
-    @Column(nullable = false, unique = true)
-    var name: String,
-
-    @Column(columnDefinition = "text")
-    val description: String? = null
+    var name: String = ""
 )

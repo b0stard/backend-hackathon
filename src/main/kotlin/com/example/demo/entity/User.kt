@@ -1,37 +1,28 @@
 package com.example.demo.entity
 
 import com.example.demo.enums.Role
-import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
-import java.time.LocalDateTime
 
 @Entity
 @Table(name = "users")
-data class User(
+class User(
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
+    var id: Long? = null,
+
+    var name: String = "",
+
+    @Column(unique = true, nullable = false)
+    var email: String = "",
 
     @Column(nullable = false)
-    val name: String,
-
-    @Column(nullable = false, unique = true)
-    val email: String,
-
-    @Column(nullable = false)
-    val password: String?,
+    var password: String = "",
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    var role: Role,
+    var role: Role = Role.USER,
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "department_id")
-    var department: Department? = null,
-
-    @Column(name = "is_active", nullable = false)
-    val isActive: Boolean = true,
-
-    @Column(name = "created_at", nullable = false)
-    val createdAt: LocalDateTime = LocalDateTime.now()
+    var department: Department? = null
 )
