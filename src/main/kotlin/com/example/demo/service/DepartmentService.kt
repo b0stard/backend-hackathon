@@ -9,11 +9,26 @@ class DepartmentService(
     private val departmentRepository: DepartmentRepository
 ) {
 
-    fun getAllDepartments(): List<Department> {
+    fun getAll(): List<Department> {
         return departmentRepository.findAll()
     }
 
-    fun getDepartmentById(id: Long): Department? {
-        return departmentRepository.findById(id).orElse(null)
+    fun create(name: String): Department {
+        val department = Department(
+            name = name
+        )
+        return departmentRepository.save(department)
+    }
+
+    fun update(id: Long, name: String): Department {
+        val dep = departmentRepository.findById(id)
+            .orElseThrow { RuntimeException("Department not found") }
+
+        dep.name = name
+        return departmentRepository.save(dep)
+    }
+
+    fun delete(id: Long) {
+        departmentRepository.deleteById(id)
     }
 }
