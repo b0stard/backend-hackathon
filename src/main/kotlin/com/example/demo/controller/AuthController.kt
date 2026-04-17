@@ -19,20 +19,28 @@ class AuthController(
         response: HttpServletResponse
     ): ResponseEntity<Any> {
         return try {
-            val result = authService.login(request.email, request.password, response)
-            ResponseEntity.ok(result)
+            ResponseEntity.ok(
+                authService.login(
+                    email = request.email,
+                    password = request.password,
+                    response = response
+                )
+            )
         } catch (e: Exception) {
-            ResponseEntity.status(401).body(e.message ?: "Unauthorized")
+            ResponseEntity.status(401).body(
+                mapOf("message" to (e.message ?: "Unauthorized"))
+            )
         }
     }
 
     @GetMapping("/me")
     fun me(request: HttpServletRequest): ResponseEntity<Any> {
         return try {
-            val user = authService.getCurrentUser(request)
-            ResponseEntity.ok(user)
+            ResponseEntity.ok(authService.getCurrentUser(request))
         } catch (e: Exception) {
-            ResponseEntity.status(401).body(e.message ?: "Not authorized")
+            ResponseEntity.status(401).body(
+                mapOf("message" to (e.message ?: "Not authorized"))
+            )
         }
     }
 

@@ -17,9 +17,13 @@ class AuthService(
     private val passwordEncoder: PasswordEncoder
 ) {
 
-    fun login(email: String, password: String, response: HttpServletResponse): AuthResponse {
+    fun login(
+        email: String,
+        password: String,
+        response: HttpServletResponse
+    ): AuthResponse {
         val user = userRepository.findByEmail(email)
-            ?: throw RuntimeException("User not found")
+            ?: throw NotFoundException("User not found")
 
         if (!passwordEncoder.matches(password, user.password)) {
             throw RuntimeException("Wrong password")
@@ -29,6 +33,8 @@ class AuthService(
         cookie.path = "/"
         cookie.isHttpOnly = true
         cookie.maxAge = 60 * 60 * 24
+        cookie.secure = false
+        cookie.setAttribute("SameSite", "Lax")
 
         response.addCookie(cookie)
 
@@ -37,7 +43,7 @@ class AuthService(
 
     fun getCurrentUser(request: HttpServletRequest): AuthResponse {
         val userId = request.cookies
-            ?.find { it.name == "userId" }
+            ?.firstOrNull { it.name == "userId" }
             ?.value
             ?.toLongOrNull()
             ?: throw RuntimeException("Not authorized")
@@ -50,7 +56,7 @@ class AuthService(
 
     fun requireAdmin(request: HttpServletRequest): User {
         val userId = request.cookies
-            ?.find { it.name == "userId" }
+            ?.firstOrNull { it.name == "userId" }
             ?.value
             ?.toLongOrNull()
             ?: throw RuntimeException("Not authorized")
@@ -68,13 +74,17 @@ class AuthService(
     fun logout(response: HttpServletResponse) {
         val cookie = Cookie("userId", "")
         cookie.path = "/"
+        cookie.isHttpOnly = true
         cookie.maxAge = 0
+        cookie.secure = false
+        cookie.setAttribute("SameSite", "Lax")
+
         response.addCookie(cookie)
     }
 
     private fun toAuthResponse(user: User): AuthResponse {
         return AuthResponse(
-            id = user.id,
+            id = user.id!!,
             name = user.name,
             email = user.email,
             role = user.role.name,

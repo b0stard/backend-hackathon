@@ -1,135 +1,139 @@
 package com.example.demo.controller
 
-import com.example.demo.dto.request.AssignDepartmentRequest
-import com.example.demo.dto.request.CreateDepartmentRequest
-import com.example.demo.dto.request.CreateUserRequest
-import com.example.demo.service.AdminService
+import com.example.demo.entity.Department
+import com.example.demo.entity.User
+import com.example.demo.enums.Role
+import com.example.demo.repository.DepartmentRepository
+import com.example.demo.repository.UserRepository
 import com.example.demo.service.AuthService
-import com.example.demo.service.UserService
-import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.ResponseEntity
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.*
+import jakarta.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("/api/admin")
 class AdminController(
-    private val adminService: AdminService,
-    private val authService: AuthService,
-    private val userService: UserService
+    private val userRepository: UserRepository,
+    private val departmentRepository: DepartmentRepository,
+    private val passwordEncoder: PasswordEncoder,
+    private val authService: AuthService
 ) {
 
     @GetMapping("/users")
     fun getAllUsers(request: HttpServletRequest): ResponseEntity<Any> {
         return try {
             authService.requireAdmin(request)
-            ResponseEntity.ok(adminService.getAllUsers())
-        } catch (e: RuntimeException) {
-            val status = if (e.message == "Forbidden") 403 else 401
-            ResponseEntity.status(status).body(e.message ?: "Unauthorized")
-        }
-    }
-
-    @PostMapping("/users")
-    fun createUser(
-        request: HttpServletRequest,
-        @RequestBody body: CreateUserRequest
-    ): ResponseEntity<Any> {
-        return try {
-            authService.requireAdmin(request)
-
-            val user = adminService.createUser(
-                email = body.email,
-                password = body.password,
-                name = body.name,
-                role = body.role,
-                departmentId = body.departmentId
-            )
-
-            ResponseEntity.ok(user)
-        } catch (e: RuntimeException) {
-            val status = if (e.message == "Forbidden") 403 else 400
-            ResponseEntity.status(status).body(e.message ?: "Error")
+            ResponseEntity.ok(userRepository.findAll())
+        } catch (e: Exception) {
+            ResponseEntity.status(403).body(e.message ?: "Forbidden")
         }
     }
 
     @PostMapping("/departments")
     fun createDepartment(
         request: HttpServletRequest,
-        @RequestBody body: CreateDepartmentRequest
+        @RequestParam name: String
     ): ResponseEntity<Any> {
         return try {
             authService.requireAdmin(request)
 
-            val department = adminService.createDepartment(
-                name = body.name,
-                description = body.description
+            val department = Department(
+                name = name
             )
 
-            ResponseEntity.ok(department)
-        } catch (e: RuntimeException) {
-            val status = if (e.message == "Forbidden") 403 else 400
-            ResponseEntity.status(status).body(e.message ?: "Error")
-        }
-    }
-    @PostMapping("/assign-department")
-    fun assignDepartment(
-        @RequestBody request: AssignDepartmentRequest,
-        httpRequest: HttpServletRequest
-    ): ResponseEntity<Any> {
-        return try {
-            authService.requireAdmin(httpRequest)
-
-            val user = adminService.assignDepartment(
-                request.userId,
-                request.departmentId
-            )
-
-            ResponseEntity.ok(user)
+            ResponseEntity.ok(departmentRepository.save(department))
         } catch (e: Exception) {
-            ResponseEntity.badRequest().body(e.message)
-        }
-    }
-    @PatchMapping("/users/{id}/role")
-    fun changeUserRole(
-        request: HttpServletRequest,
-        @PathVariable id: Long,
-        @RequestParam role: String
-    ): ResponseEntity<Any> {
-        return try {
-            authService.requireAdmin(request)
-            ResponseEntity.ok(adminService.changeUserRole(id, role))
-        } catch (e: RuntimeException) {
-            val status = if (e.message == "Forbidden") 403 else 400
-            ResponseEntity.status(status).body(e.message ?: "Error")
+            ResponseEntity.badRequest().body(e.message ?: "Error")
         }
     }
 
-    @PatchMapping("/users/{id}/department")
-    fun changeUserDepartment(
+    @GetMapping("/departments")
+    fun getAllDepartments(request: HttpServletRequest): ResponseEntity<Any> {
+        return try {
+            authService.requireAdmin(request)
+            ResponseEntity.ok(departmentRepository.findAll())
+        } catch (e: Exception) {
+            ResponseEntity.status(403).body(e.message ?: "Forbidden")
+        }
+    }
+
+    @PostMapping("/users/create")
+    fun createUser(
         request: HttpServletRequest,
-        @PathVariable id: Long,
+        @RequestParam name: String,
+        @RequestParam email: String,
+        @RequestParam password: String,
+        @RequestParam role: String,
+        @RequestParam(required = false) departmentId: Long?
+    ): ResponseEntity<Any> {
+        return try {
+            authService.requireAdmin(request)
+
+            val existing = userRepository.findByEmail(email)
+            if (existing != null) {
+                return ResponseEntity.badRequest().body("User with this email already exists")
+            }
+
+            val department = if (departmentId != null) {
+                departmentRepository.findById(departmentId)
+                    .orElseThrow { RuntimeException("Department not found") }
+            } else {
+                null
+            }
+
+            val user = User(
+                name = name,
+                email = email,
+                password = passwordEncoder.encode(password),
+                role = Role.valueOf(role.uppercase()),
+                department = department
+            )
+
+            ResponseEntity.ok(userRepository.save(user))
+        } catch (e: Exception) {
+            ResponseEntity.badRequest().body(e.message ?: "Error")
+        }
+    }
+
+    @PostMapping("/users/{userId}/assign-department")
+    fun assignDepartment(
+        request: HttpServletRequest,
+        @PathVariable userId: Long,
         @RequestParam departmentId: Long
     ): ResponseEntity<Any> {
         return try {
             authService.requireAdmin(request)
-            ResponseEntity.ok(adminService.changeUserDepartment(id, departmentId))
-        } catch (e: RuntimeException) {
-            val status = if (e.message == "Forbidden") 403 else 400
-            ResponseEntity.status(status).body(e.message ?: "Error")
+
+            val user = userRepository.findById(userId)
+                .orElseThrow { RuntimeException("User not found") }
+
+            val department = departmentRepository.findById(departmentId)
+                .orElseThrow { RuntimeException("Department not found") }
+
+            user.department = department
+            ResponseEntity.ok(userRepository.save(user))
+        } catch (e: Exception) {
+            ResponseEntity.badRequest().body(e.message ?: "Error")
         }
     }
 
-    @PostMapping("/create")
-    fun createAdmin(
-        @RequestParam email: String,
-        @RequestParam password: String,
-        @RequestParam name: String
+    @PostMapping("/users/{userId}/change-role")
+    fun changeRole(
+        request: HttpServletRequest,
+        @PathVariable userId: Long,
+        @RequestParam role: String
     ): ResponseEntity<Any> {
         return try {
-            val admin = userService.createAdmin(email, password, name)
-            ResponseEntity.ok(admin)
+            authService.requireAdmin(request)
+
+            val user = userRepository.findById(userId)
+                .orElseThrow { RuntimeException("User not found") }
+
+            user.role = Role.valueOf(role.uppercase())
+            ResponseEntity.ok(userRepository.save(user))
         } catch (e: Exception) {
-            ResponseEntity.badRequest().body(e.message)
+            ResponseEntity.badRequest().body(e.message ?: "Error")
         }
     }
 }
