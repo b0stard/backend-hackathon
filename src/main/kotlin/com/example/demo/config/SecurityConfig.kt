@@ -2,8 +2,6 @@ package com.example.demo.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpMethod
-import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
@@ -17,18 +15,19 @@ class SecurityConfig {
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            .cors(Customizer.withDefaults())
-            .csrf { it.disable() }
-            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.ALWAYS) }
+            .cors { } // включаем CORS
+            .csrf { it.disable() } // отключаем csrf
+
+            .sessionManagement {
+                it.sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+            }
+
             .authorizeHttpRequests {
                 it
-                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .requestMatchers(
                         "/api/auth/**",
                         "/swagger-ui/**",
-                        "/swagger-ui.html",
-                        "/v3/api-docs/**",
-                        "/api/health/**"
+                        "/v3/api-docs/**"
                     ).permitAll()
                     .anyRequest().permitAll()
             }
@@ -39,13 +38,16 @@ class SecurityConfig {
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val config = CorsConfiguration()
+
         config.allowedOrigins = listOf("http://localhost:5173")
-        config.allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+        config.allowedMethods = listOf("*")
         config.allowedHeaders = listOf("*")
+
         config.allowCredentials = true
 
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", config)
+
         return source
     }
 }

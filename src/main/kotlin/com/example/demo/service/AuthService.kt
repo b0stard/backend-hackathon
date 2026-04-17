@@ -33,7 +33,8 @@ class AuthService(
         cookie.path = "/"
         cookie.isHttpOnly = true
         cookie.maxAge = 60 * 60 * 24
-        cookie.secure = false
+        cookie.secure = true
+        cookie.setAttribute("SameSite", "None")
 
         response.addCookie(cookie)
 
