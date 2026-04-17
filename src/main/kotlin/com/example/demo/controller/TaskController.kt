@@ -1,10 +1,10 @@
 package com.example.demo.controller
 
 import com.example.demo.dto.request.CreateTaskRequest
-import com.example.demo.dto.request.UpdateTaskStatusRequest
-import com.example.demo.enums.TaskPriority
+import com.example.demo.dto.request.UpdateTaskRequest
+import com.example.demo.dto.response.TaskResponse
 import com.example.demo.service.TaskService
-import org.springframework.http.ResponseEntity
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -14,42 +14,28 @@ class TaskController(
 ) {
 
     @GetMapping
-    fun getTasks(
-        @RequestParam(required = false) assigneeId: Long?,
-        @RequestParam(required = false) priority: TaskPriority?,
-        @RequestParam(required = false) title: String?
-    ): ResponseEntity<Any> {
-
-        return ResponseEntity.ok(
-            taskService.getTasks(
-                assigneeId,
-                priority,
-                title
-            )
-        )
+    fun getAll(): List<TaskResponse> {
+        return taskService.getAll()
     }
 
     @GetMapping("/{id}")
-    fun getTaskById(@PathVariable id: Long): ResponseEntity<Any> {
-        val task = taskService.getTaskById(id)
-            ?: return ResponseEntity.status(404).body("Task not found")
-
-        return ResponseEntity.ok(task)
+    fun getById(@PathVariable id: Long): TaskResponse {
+        return taskService.getById(id)
     }
 
     @PostMapping
-    fun createTask(
+    fun create(
         @RequestBody request: CreateTaskRequest,
-        @RequestParam authorId: Long
-    ): ResponseEntity<Any> {
-        return ResponseEntity.ok(taskService.createTask(request, authorId))
+        httpRequest: HttpServletRequest
+    ): TaskResponse {
+        return taskService.create(request, httpRequest)
     }
 
-    @PatchMapping("/{id}/status")
-    fun updateTaskStatus(
+    @PutMapping("/{id}")
+    fun update(
         @PathVariable id: Long,
-        @RequestBody request: UpdateTaskStatusRequest
-    ): ResponseEntity<Any> {
-        return ResponseEntity.ok(taskService.updateTaskStatus(id, request))
+        @RequestBody request: UpdateTaskRequest
+    ): TaskResponse {
+        return taskService.update(id, request)
     }
 }
