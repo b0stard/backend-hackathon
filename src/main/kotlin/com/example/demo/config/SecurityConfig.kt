@@ -14,37 +14,44 @@ class SecurityConfig {
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            .cors { } // 🔥 ВАЖНО: включает CORS
+            .cors { it.configurationSource(corsConfigurationSource()) }
             .csrf { it.disable() }
-
             .authorizeHttpRequests {
                 it
-                    .requestMatchers("/api/auth/**").permitAll() // логин/регистрация
-                    .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                    .anyRequest().authenticated()
+                    .requestMatchers(
+                        "/api/auth/**",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**",
+                        "/swagger-ui.html",
+                        "/api/health",
+                        "/"
+                    ).permitAll()
+                    .anyRequest().permitAll()
             }
 
         return http.build()
     }
 
-
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
-        val configuration = CorsConfiguration()
+        val config = CorsConfiguration()
 
-        configuration.allowedOrigins = listOf(
+        config.allowedOrigins = listOf(
             "http://localhost:5173"
         )
-
-        configuration.allowedMethods = listOf(
-            "GET", "POST", "PUT", "DELETE", "OPTIONS"
+        config.allowedMethods = listOf(
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE",
+            "OPTIONS"
         )
-
-        configuration.allowedHeaders = listOf("*")
-        configuration.allowCredentials = true
+        config.allowedHeaders = listOf("*")
+        config.allowCredentials = true
 
         val source = UrlBasedCorsConfigurationSource()
-        source.registerCorsConfiguration("/**", configuration)
+        source.registerCorsConfiguration("/**", config)
         return source
     }
 }
