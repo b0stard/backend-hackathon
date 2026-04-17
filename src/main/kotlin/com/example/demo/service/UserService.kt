@@ -21,6 +21,18 @@ class UserService(
     fun findByEmail(email: String): User? {
         return userRepository.findByEmail(email)
     }
+    fun getAll(): List<UserResponse> {
+        return userRepository.findAll().map { user ->
+            UserResponse(
+                id = user.id,
+                name = user.name,
+                email = user.email,
+                role = user.role.name,
+                departmentId = user.department?.id,
+                departmentName = user.department?.name
+            )
+        }
+    }
     fun changeRole(id: Long, role: String, request: HttpServletRequest): UserResponse {
         authService.requireAdmin(request)
 
