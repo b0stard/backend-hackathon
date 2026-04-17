@@ -13,7 +13,7 @@ class Task(
     var id: Long? = null,
 
     @Column(nullable = false)
-    var title: String = "",
+    var title: String ,
 
     @Column(columnDefinition = "TEXT")
     var description: String? = null,

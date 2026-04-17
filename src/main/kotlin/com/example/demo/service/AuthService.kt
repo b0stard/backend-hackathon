@@ -4,6 +4,7 @@ import com.example.demo.dto.response.AuthResponse
 import com.example.demo.entity.User
 import com.example.demo.enums.Role
 import com.example.demo.exception.NotFoundException
+import com.example.demo.repository.DepartmentRepository
 import com.example.demo.repository.UserRepository
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service
 @Service
 class AuthService(
     private val userRepository: UserRepository,
+    private val departmentRepository: DepartmentRepository,
     private val passwordEncoder: PasswordEncoder
 ) {
 
@@ -35,14 +37,19 @@ class AuthService(
         cookie.maxAge = 60 * 60 * 24
         cookie.secure = false
         cookie.setAttribute("SameSite", "Lax")
-
         response.addCookie(cookie)
 
         return toAuthResponse(user)
     }
+
+    fun getCurrentUser(request: HttpServletRequest): AuthResponse {
+        val user = getUserEntity(request)
+        return toAuthResponse(user)
+    }
+
     fun getUserEntity(request: HttpServletRequest): User {
         val userId = request.cookies
-            ?.find { it.name == "userId" }
+            ?.firstOrNull { it.name == "userId" }
             ?.value
             ?.toLongOrNull()
             ?: throw RuntimeException("Not authorized")
@@ -50,33 +57,12 @@ class AuthService(
         return userRepository.findById(userId)
             .orElseThrow { NotFoundException("User not found") }
     }
-    fun getCurrentUser(request: HttpServletRequest): AuthResponse {
-        val userId = request.cookies
-            ?.firstOrNull { it.name == "userId" }
-            ?.value
-            ?.toLongOrNull()
-            ?: throw RuntimeException("Not authorized")
-
-        val user = userRepository.findById(userId)
-            .orElseThrow { NotFoundException("User not found") }
-
-        return toAuthResponse(user)
-    }
 
     fun requireAdmin(request: HttpServletRequest): User {
-        val userId = request.cookies
-            ?.firstOrNull { it.name == "userId" }
-            ?.value
-            ?.toLongOrNull()
-            ?: throw RuntimeException("Not authorized")
-
-        val user = userRepository.findById(userId)
-            .orElseThrow { NotFoundException("User not found") }
-
+        val user = getUserEntity(request)
         if (user.role != Role.ADMIN) {
             throw RuntimeException("Forbidden")
         }
-
         return user
     }
 
@@ -87,18 +73,18 @@ class AuthService(
         cookie.maxAge = 0
         cookie.secure = false
         cookie.setAttribute("SameSite", "Lax")
-
         response.addCookie(cookie)
     }
 
     private fun toAuthResponse(user: User): AuthResponse {
+        val department = user.department?.id?.let { departmentRepository.findById(it).orElse(null) }
         return AuthResponse(
             id = user.id!!,
             name = user.name,
             email = user.email,
             role = user.role.name,
-            departmentId = user.department?.id,
-            departmentName = user.department?.name
+            departmentId = department?.id,
+            departmentName = department?.name
         )
     }
 }

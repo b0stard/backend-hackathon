@@ -25,6 +25,7 @@ class UserService(
             throw RuntimeException("User with this email already exists")
         }
 
+
         val user = User(
             name = request.name,
             email = request.email,
@@ -37,29 +38,31 @@ class UserService(
     }
 
     fun getAll(): List<UserResponse> {
-        return userRepository.findAll().map { toUserResponse(it) }
+        val departments = departmentRepository.findAll().associateBy { it.id }
+        return userRepository.findAll().map { user ->
+            val department = user.department?.id?.let { departments[it] }
+            UserResponse(
+                id = user.id!!,
+                name = user.name,
+                email = user.email,
+                role = user.role.name,
+                departmentId = department?.id,
+                departmentName = department?.name
+            )
+        }
     }
 
-    fun changeRole(
-        id: Long,
-        role: String,
-        request: HttpServletRequest
-    ): UserResponse {
+    fun changeRole(id: Long, role: String, request: HttpServletRequest): UserResponse {
         authService.requireAdmin(request)
 
         val user = userRepository.findById(id)
             .orElseThrow { NotFoundException("User not found") }
 
         user.role = Role.valueOf(role.uppercase())
-
         return toUserResponse(userRepository.save(user))
     }
 
-    fun assignDepartment(
-        id: Long,
-        departmentId: Long,
-        request: HttpServletRequest
-    ): UserResponse {
+    fun assignDepartment(id: Long, departmentId: Long, request: HttpServletRequest): UserResponse {
         authService.requireAdmin(request)
 
         val user = userRepository.findById(id)
@@ -69,29 +72,30 @@ class UserService(
             .orElseThrow { NotFoundException("Department not found") }
 
         user.department = department
-
         return toUserResponse(userRepository.save(user))
     }
 
     private fun toAuthResponse(user: User): AuthResponse {
+        val department = user.department
         return AuthResponse(
             id = user.id!!,
             name = user.name,
             email = user.email,
             role = user.role.name,
-            departmentId = user.department?.id,
-            departmentName = user.department?.name
+            departmentId = department?.id,
+            departmentName = department?.name
         )
     }
 
     private fun toUserResponse(user: User): UserResponse {
+        val department = user.department
         return UserResponse(
             id = user.id!!,
             name = user.name,
             email = user.email,
             role = user.role.name,
-            departmentId = user.department?.id,
-            departmentName = user.department?.name
+            departmentId = department?.id,
+            departmentName = department?.name
         )
     }
 }

@@ -1,27 +1,27 @@
 package com.example.demo.controller
 
-import com.example.demo.entity.Department
+import com.example.demo.dto.request.CreateDepartmentRequest
+import com.example.demo.service.AuthService
 import com.example.demo.service.DepartmentService
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import jakarta.servlet.http.HttpServletRequest
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/departments")
 class DepartmentController(
-    private val departmentService: DepartmentService
+    private val departmentService: DepartmentService,
+    private val authService: AuthService
 ) {
 
     @GetMapping
-    fun getAll(): List<Department> {
-        return departmentService.getAll()
-    }
+    fun getAll() = departmentService.getAll()
 
     @PostMapping
-    fun create(@RequestBody body: Map<String, String>): Department {
-        val name = body["name"] ?: throw RuntimeException("Name required")
-        return departmentService.create(name)
+    fun create(
+        @RequestBody request: CreateDepartmentRequest,
+        httpRequest: HttpServletRequest
+    ): Any {
+        authService.requireAdmin(httpRequest)
+        return departmentService.create(request)
     }
 }

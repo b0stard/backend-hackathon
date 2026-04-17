@@ -20,16 +20,10 @@ class AuthController(
     ): ResponseEntity<Any> {
         return try {
             ResponseEntity.ok(
-                authService.login(
-                    email = request.email,
-                    password = request.password,
-                    response = response
-                )
+                authService.login(request.email, request.password, response)
             )
         } catch (e: Exception) {
-            ResponseEntity.status(401).body(
-                mapOf("message" to (e.message ?: "Unauthorized"))
-            )
+            ResponseEntity.status(401).body(mapOf("message" to (e.message ?: "Unauthorized")))
         }
     }
 
@@ -38,9 +32,7 @@ class AuthController(
         return try {
             ResponseEntity.ok(authService.getCurrentUser(request))
         } catch (e: Exception) {
-            ResponseEntity.status(401).body(
-                mapOf("message" to (e.message ?: "Not authorized"))
-            )
+            ResponseEntity.status(401).body(mapOf("message" to (e.message ?: "Not authorized")))
         }
     }
 

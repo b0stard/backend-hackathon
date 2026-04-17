@@ -11,13 +11,13 @@ class User(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
-    var name: String = "",
+    var name: String,
 
     @Column(unique = true, nullable = false)
-    var email: String = "",
+    var email: String ,
 
     @Column(nullable = false)
-    var password: String = "",
+    var password: String?,
 
     @Enumerated(EnumType.STRING)
     var role: Role = Role.USER,

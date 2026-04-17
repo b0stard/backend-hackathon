@@ -10,5 +10,5 @@ class Department(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
-    var name: String = ""
+    var name: String
 )
