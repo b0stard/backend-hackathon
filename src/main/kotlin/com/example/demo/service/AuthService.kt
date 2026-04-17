@@ -33,8 +33,8 @@ class AuthService(
         cookie.path = "/"
         cookie.isHttpOnly = true
         cookie.maxAge = 60 * 60 * 24
-        cookie.secure = true
-        cookie.setAttribute("SameSite", "None")
+        cookie.secure = false
+        cookie.setAttribute("SameSite", "Lax")
 
         response.addCookie(cookie)
 
@@ -43,7 +43,7 @@ class AuthService(
 
     fun getCurrentUser(request: HttpServletRequest): AuthResponse {
         val userId = request.cookies
-            ?.find { it.name == "userId" }
+            ?.firstOrNull { it.name == "userId" }
             ?.value
             ?.toLongOrNull()
             ?: throw RuntimeException("Not authorized")
@@ -54,19 +54,15 @@ class AuthService(
         return toAuthResponse(user)
     }
 
-    fun getUserEntity(request: HttpServletRequest): User {
+    fun requireAdmin(request: HttpServletRequest): User {
         val userId = request.cookies
-            ?.find { it.name == "userId" }
+            ?.firstOrNull { it.name == "userId" }
             ?.value
             ?.toLongOrNull()
             ?: throw RuntimeException("Not authorized")
 
-        return userRepository.findById(userId)
+        val user = userRepository.findById(userId)
             .orElseThrow { NotFoundException("User not found") }
-    }
-
-    fun requireAdmin(request: HttpServletRequest): User {
-        val user = getUserEntity(request)
 
         if (user.role != Role.ADMIN) {
             throw RuntimeException("Forbidden")
@@ -78,15 +74,12 @@ class AuthService(
     fun logout(response: HttpServletResponse) {
         val cookie = Cookie("userId", "")
         cookie.path = "/"
-        cookie.maxAge = 0
         cookie.isHttpOnly = true
+        cookie.maxAge = 0
         cookie.secure = false
+        cookie.setAttribute("SameSite", "Lax")
 
         response.addCookie(cookie)
-    }
-
-    fun getUserById(id: Long): User? {
-        return userRepository.findById(id).orElse(null)
     }
 
     private fun toAuthResponse(user: User): AuthResponse {
