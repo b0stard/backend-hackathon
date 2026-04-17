@@ -2,6 +2,7 @@ package com.example.demo.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.web.cors.CorsConfiguration
@@ -16,16 +17,11 @@ class SecurityConfig {
         http
             .cors { it.configurationSource(corsConfigurationSource()) }
             .csrf { it.disable() }
+
             .authorizeHttpRequests {
                 it
-                    .requestMatchers(
-                        "/api/auth/**",
-                        "/swagger-ui/**",
-                        "/v3/api-docs/**",
-                        "/swagger-ui.html",
-                        "/api/health",
-                        "/"
-                    ).permitAll()
+                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                    .requestMatchers("/api/auth/**").permitAll()
                     .anyRequest().permitAll()
             }
 
