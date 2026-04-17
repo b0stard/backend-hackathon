@@ -25,7 +25,7 @@ data class User(
     @Column(nullable = false)
     var role: Role,
 
-    @JsonIgnore
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "department_id")
     var department: Department? = null,
 

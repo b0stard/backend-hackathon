@@ -43,7 +43,7 @@ data class Task(
     @JoinColumn(name = "assignee_id", nullable = false)
     var assignee: User? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "department_id", nullable = false)
     var department: Department? = null
 )
