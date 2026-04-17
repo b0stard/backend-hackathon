@@ -19,8 +19,9 @@ class AuthController(
         response: HttpServletResponse
     ): ResponseEntity<Any> {
         return try {
-            val result = authService.login(request.email, request.password, response)
-            ResponseEntity.ok(result)
+            ResponseEntity.ok(
+                authService.login(request.email, request.password, response)
+            )
         } catch (e: Exception) {
             ResponseEntity.status(401).body(mapOf("message" to (e.message ?: "Unauthorized")))
         }
