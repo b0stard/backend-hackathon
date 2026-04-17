@@ -1,6 +1,7 @@
 package com.example.demo.controller
 
 import com.example.demo.service.UserService
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -33,4 +34,17 @@ class UserController(
             userService.createUser(email, password, name)
         )
     }
+    @PostMapping("/{id}/change-role")
+    fun changeRole(
+        @PathVariable id: Long,
+        @RequestParam role: String,
+        request: HttpServletRequest
+    ) = userService.changeRole(id, role, request)
+
+    @PostMapping("/{id}/assign-department")
+    fun assignDepartment(
+        @PathVariable id: Long,
+        @RequestParam departmentId: Long,
+        request: HttpServletRequest
+    ) = userService.assignDepartment(id, departmentId, request)
 }
