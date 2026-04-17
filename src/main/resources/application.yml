@@ -6,9 +6,6 @@ spring:
     driver-class-name: org.postgresql.Driver
 
   data:
-    redis:
-      url: ${REDIS_PUBLIC_URL}
-
   jpa:
     hibernate:
       ddl-auto: update

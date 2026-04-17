@@ -22,7 +22,7 @@ class AuthController(
             val result = authService.login(request.email, request.password, response)
             ResponseEntity.ok(result)
         } catch (e: Exception) {
-            ResponseEntity.status(401).body(e.message ?: "Unauthorized")
+            ResponseEntity.status(401).body(mapOf("message" to (e.message ?: "Unauthorized")))
         }
     }
 
@@ -31,16 +31,13 @@ class AuthController(
         return try {
             ResponseEntity.ok(authService.getCurrentUser(request))
         } catch (e: Exception) {
-            ResponseEntity.status(401).body(e.message ?: "Not authorized")
+            ResponseEntity.status(401).body(mapOf("message" to (e.message ?: "Not authorized")))
         }
     }
 
     @PostMapping("/logout")
-    fun logout(
-        request: HttpServletRequest,
-        response: HttpServletResponse
-    ): ResponseEntity<Any> {
-        authService.logout(request, response)
+    fun logout(response: HttpServletResponse): ResponseEntity<Any> {
+        authService.logout(response)
         return ResponseEntity.ok(mapOf("message" to "Logged out"))
     }
 }
