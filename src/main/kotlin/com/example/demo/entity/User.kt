@@ -1,6 +1,7 @@
 package com.example.demo.entity
 
 import com.example.demo.enums.Role
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 import java.time.LocalDateTime
 
@@ -24,7 +25,7 @@ data class User(
     @Column(nullable = false)
     var role: Role,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     @JoinColumn(name = "department_id")
     var department: Department? = null,
 

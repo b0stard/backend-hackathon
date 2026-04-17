@@ -27,7 +27,7 @@ data class Task(
     var priority: TaskPriority,
 
     @Column(nullable = false)
-    var deadline: LocalDateTime,
+    var deadline: LocalDateTime? = null,
 
     @Column(name = "created_at", nullable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
@@ -37,13 +37,13 @@ data class Task(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
-    val author: User,
+    var author: User? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assignee_id", nullable = false)
-    var assignee: User,
+    var assignee: User? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id", nullable = false)
-    var department: Department
+    var department: Department? = null
 )

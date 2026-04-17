@@ -1,17 +1,15 @@
 package com.example.demo.service
 
 import com.example.demo.dto.request.CreateTaskRequest
-import com.example.demo.dto.request.UpdateTaskStatusRequest
 import com.example.demo.dto.response.TaskResponse
 import com.example.demo.entity.Task
 import com.example.demo.enums.TaskPriority
-import com.example.demo.enums.TaskStatus
 import com.example.demo.exception.NotFoundException
 import com.example.demo.repository.DepartmentRepository
 import com.example.demo.repository.TaskRepository
 import com.example.demo.repository.UserRepository
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
 @Service
@@ -19,106 +17,50 @@ class TaskService(
     private val taskRepository: TaskRepository,
     private val userRepository: UserRepository,
     private val departmentRepository: DepartmentRepository,
-    private val emailService: EmailService
+    private val authService: AuthService
 ) {
 
-    fun getTasks(
-        assigneeId: Long?,
-        priority: TaskPriority?,
-        title: String?
-    ): List<TaskResponse> {
-
-        return taskRepository.findAll()
-            .asSequence()
-
-            .filter { task ->
-                assigneeId == null || task.assignee.id == assigneeId
-            }
-
-            .filter { task ->
-                priority == null || task.priority == priority
-            }
-
-            .filter { task ->
-                title.isNullOrBlank() || task.title.lowercase().contains(title.lowercase())
-            }
-
-            .sortedByDescending { it.createdAt }
-
-            .map { it.toTaskResponse() }
-
-            .toList()
+    fun getAll(): List<TaskResponse> {
+        return taskRepository.findAll().map { toResponse(it) }
     }
 
-    fun getTaskById(id: Long): TaskResponse? {
-        return taskRepository.findById(id)
-            .map { it.toTaskResponse() }
-            .orElse(null)
-    }
+    fun create(request: CreateTaskRequest, httpRequest: HttpServletRequest): TaskResponse {
+        val currentUser = authService.getUserEntity(httpRequest)
 
-    @Transactional
-    fun createTask(request: CreateTaskRequest, authorId: Long): TaskResponse {
-        val author = userRepository.findById(authorId)
-            .orElseThrow { NotFoundException("Автор задачи не найден") }
+        val assignee = request.assigneeId?.let {
+            userRepository.findById(it).orElseThrow { NotFoundException("Assignee not found") }
+        }
 
-        val assignee = userRepository.findById(request.assigneeId)
-            .orElseThrow { NotFoundException("Исполнитель не найден") }
-
-        val department = departmentRepository.findById(request.departmentId)
-            .orElseThrow { NotFoundException("Отдел не найден") }
+        val department = request.departmentId?.let {
+            departmentRepository.findById(it).orElseThrow { NotFoundException("Department not found") }
+        }
 
         val task = Task(
             title = request.title,
             description = request.description,
-            priority = request.priority,
-            deadline = request.deadline,
-            author = author,
+            author = currentUser,
             assignee = assignee,
             department = department,
-            status = TaskStatus.NEW
+            priority = TaskPriority.valueOf(request.priority.uppercase()),
+            deadline = request.deadline?.let { LocalDateTime.parse(it) }
         )
 
-        val savedTask = taskRepository.save(task)
-
-        try {
-            emailService.sendTaskAssignedEmail(
-                to = assignee.email,
-                taskTitle = savedTask.title,
-                deadline = savedTask.deadline.toString()
-            )
-        } catch (_: Exception) {
-
-        }
-
-        return savedTask.toTaskResponse()
+        return toResponse(taskRepository.save(task))
     }
 
-    @Transactional
-    fun updateTaskStatus(taskId: Long, request: UpdateTaskStatusRequest): TaskResponse {
-        val task = taskRepository.findById(taskId)
-            .orElseThrow { NotFoundException("Задача не найдена") }
-
-        task.status = request.status
-        task.updatedAt = LocalDateTime.now()
-
-        val savedTask = taskRepository.save(task)
-        return savedTask.toTaskResponse()
-    }
-
-    private fun Task.toTaskResponse(): TaskResponse {
+    private fun toResponse(task: Task): TaskResponse {
         return TaskResponse(
-            id = this.id,
-            title = this.title,
-            shortDescription = this.description,
-            status = this.status.name,
-            priority = this.priority.name,
-            deadline = this.deadline,
-            createdAt = this.createdAt,
-            authorId = this.author.id,
-            authorName = this.author.name,
-            assigneeId = this.assignee.id,
-            assigneeName = this.assignee.name,
-            isOverdue = this.status != TaskStatus.DONE && this.deadline.isBefore(LocalDateTime.now())
+            id = task.id!!,
+            title = task.title,
+            description = task.description,
+            priority = task.priority.name,
+            deadline = task.deadline?.toString(),
+            authorId = task.author?.id,
+            authorName = task.author?.name,
+            assigneeId = task.assignee?.id,
+            assigneeName = task.assignee?.name,
+            departmentId = task.department?.id,
+            departmentName = task.department?.name
         )
     }
 }

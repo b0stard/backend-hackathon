@@ -13,7 +13,6 @@ data class TaskDetailsResponse(
     val author: UserShortResponse,
     val assignee: UserShortResponse,
     val department: DepartmentResponse,
-    val isOverdue: Boolean,
     val comments: List<CommentResponse>,
     val history: List<TaskHistoryResponse>
 )

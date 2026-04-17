@@ -40,7 +40,16 @@ class AuthService(
 
         return toAuthResponse(user)
     }
+    fun getUserEntity(request: HttpServletRequest): User {
+        val userId = request.cookies
+            ?.find { it.name == "userId" }
+            ?.value
+            ?.toLongOrNull()
+            ?: throw RuntimeException("Not authorized")
 
+        return userRepository.findById(userId)
+            .orElseThrow { NotFoundException("User not found") }
+    }
     fun getCurrentUser(request: HttpServletRequest): AuthResponse {
         val userId = request.cookies
             ?.firstOrNull { it.name == "userId" }
