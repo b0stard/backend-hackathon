@@ -47,12 +47,20 @@ class AuthController(
     }
 
     @GetMapping("/me")
-    fun me(request: HttpServletRequest): ResponseEntity<UserResponse> {
-        val user = authService.getCurrentUser(request)
-            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+    fun me(@RequestParam email: String): UserResponse {
+        val user = userRepository.findByEmail(email)
+            ?: throw RuntimeException("User not found")
 
-        return ResponseEntity.ok(user)
+        return UserResponse(
+            id = user.id!!,
+            name = user.name,
+            email = user.email,
+            role = user.role.name,
+            departmentId = user.department?.id,
+            departmentName = user.department?.name
+        )
     }
+
 
 
     @PostMapping("/logout")
