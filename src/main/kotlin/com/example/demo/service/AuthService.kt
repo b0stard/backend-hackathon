@@ -1,6 +1,7 @@
 package com.example.demo.service
 
 import com.example.demo.dto.response.AuthResponse
+import com.example.demo.dto.response.UserResponse
 import com.example.demo.entity.User
 import com.example.demo.enums.Role
 import com.example.demo.exception.NotFoundException
@@ -41,18 +42,23 @@ class AuthService(
         return toAuthResponse(user)
     }
 
-    fun getCurrentUser(request: HttpServletRequest): AuthResponse {
-        val userId = request.cookies
-            ?.firstOrNull { it.name == "userId" }
-            ?.value
-            ?.toLongOrNull()
-            ?: throw RuntimeException("Not authorized")
+    fun getCurrentUser(request: HttpServletRequest): UserResponse? {
+        val session = request.getSession(false) ?: return null
 
-        val user = userRepository.findById(userId)
-            .orElseThrow { NotFoundException("User not found") }
+        val userId = session.getAttribute("userId") as? Long ?: return null
 
-        return toAuthResponse(user)
+        val user = userRepository.findById(userId).orElse(null) ?: return null
+
+        return UserResponse(
+            id = user.id ?: return null,
+            name = user.name,
+            email = user.email,
+            role = user.role.name,
+            departmentId = user.department?.id,
+            departmentName = user.department?.name
+        )
     }
+
 
     fun requireAdmin(request: HttpServletRequest): User {
         val userId = request.cookies
