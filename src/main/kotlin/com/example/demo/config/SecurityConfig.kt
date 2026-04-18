@@ -15,17 +15,8 @@ class SecurityConfig {
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         return http
             .csrf { it.disable() }
-
-            // ✅ ВКЛЮЧАЕМ CORS
             .cors { }
-
-            .formLogin { it.disable() }
-            .httpBasic { it.disable() }
-
-            .authorizeHttpRequests {
-                it.anyRequest().permitAll()
-            }
-
+            .authorizeHttpRequests { it.anyRequest().permitAll() }
             .build()
     }
 

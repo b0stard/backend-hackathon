@@ -44,6 +44,7 @@ class UserService(
             .orElseThrow { RuntimeException("Department not found") }
 
         user.department = department
+
         return userRepository.save(user)
     }
 }
