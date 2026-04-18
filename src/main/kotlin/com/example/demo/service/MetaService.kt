@@ -2,23 +2,21 @@ package com.example.demo.service
 
 import com.example.demo.dto.response.MetaResponse
 import com.example.demo.enums.Role
-import com.example.demo.enums.TaskPriority
-import com.example.demo.enums.TaskStatus
+import com.example.demo.repository.DepartmentRepository
+import com.example.demo.repository.UserRepository
 import org.springframework.stereotype.Service
 
 @Service
 class MetaService(
-    private val departmentService: DepartmentService,
-    private val userService: UserService
+    private val departmentRepository: DepartmentRepository,
+    private val userRepository: UserRepository,
 ) {
 
     fun getMeta(): MetaResponse {
         return MetaResponse(
-            departments = departmentService.getAll(),
-            users = userService.getAll(),
-            roles = Role.entries.map { it.name },
-            taskStatuses = TaskStatus.entries.map { it.name },
-            taskPriorities = TaskPriority.entries.map { it.name }
+            users = userRepository.findAll(),
+            departments = departmentRepository.findAll(),
+            roles = Role.values().map { it.name }
         )
     }
 }
