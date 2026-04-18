@@ -1,6 +1,5 @@
 package com.example.demo.controller
 
-import com.example.demo.dto.request.RegisterRequest
 import com.example.demo.dto.response.UserResponse
 import com.example.demo.entity.User
 import com.example.demo.service.UserService
@@ -18,13 +17,23 @@ class UserController(
     }
 
     @PostMapping
-    fun create(@RequestBody request: RegisterRequest): UserResponse {
-        return userService.create(request)
+    fun create(
+        @RequestParam name: String,
+        @RequestParam email: String,
+        @RequestParam password: String,
+        @RequestParam(required = false) departmentName: String?
+    ): UserResponse {
+        return userService.register(name, email, password, departmentName)
     }
 
     @PostMapping("/register")
-    fun register(@RequestBody request: RegisterRequest): UserResponse {
-        return userService.create(request)
+    fun register(
+        @RequestParam name: String,
+        @RequestParam email: String,
+        @RequestParam password: String,
+        @RequestParam(required = false) departmentName: String?
+    ): UserResponse {
+        return userService.register(name, email, password, departmentName)
     }
 
     @PostMapping("/{id}/change-role")

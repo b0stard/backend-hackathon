@@ -1,11 +1,11 @@
 package com.example.demo.service
 
-import com.example.demo.dto.request.RegisterRequest
 import com.example.demo.dto.response.UserResponse
 import com.example.demo.entity.User
 import com.example.demo.enums.Role
 import com.example.demo.repository.DepartmentRepository
 import com.example.demo.repository.UserRepository
+import jakarta.transaction.Transactional
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 
@@ -19,18 +19,27 @@ class UserService(
     fun getAll(): List<User> {
         return userRepository.findAll()
     }
-
-    fun create(request: RegisterRequest): UserResponse {
-        if (userRepository.findByEmail(request.email) != null) {
+@Transactional
+    fun register(
+        name: String,
+        email: String,
+        password: String,
+        departmentName: String?
+    ): UserResponse {
+        if (userRepository.findByEmail(email) != null) {
             throw RuntimeException("User with this email already exists")
         }
 
+        val department = departmentName
+            ?.takeIf { it.isNotBlank() }
+            ?.let { departmentRepository.findByName(it) }
+
         val user = User(
-            name = request.name,
-            email = request.email,
-            password = passwordEncoder.encode(request.password),
+            name = name,
+            email = email,
+            password = passwordEncoder.encode(password),
             role = Role.USER,
-            department = null
+            department = department
         )
 
         return toResponse(userRepository.save(user))
