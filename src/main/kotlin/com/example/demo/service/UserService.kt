@@ -39,7 +39,7 @@ class UserService(
 
     fun changeRole(id: Long, role: String): UserResponse {
         val user = userRepository.findById(id)
-            .orElseThrow { NotFoundException("User not found") }
+            .orElseThrow { RuntimeException("User not found") }
 
         user.role = Role.valueOf(role.uppercase())
 

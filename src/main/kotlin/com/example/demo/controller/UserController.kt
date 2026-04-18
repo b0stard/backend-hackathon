@@ -1,7 +1,6 @@
 package com.example.demo.controller
 
 import com.example.demo.dto.request.AssignDepartmentRequest
-import com.example.demo.dto.request.ChangeRoleRequest
 import com.example.demo.dto.request.RegisterRequest
 import com.example.demo.dto.response.UserResponse
 import com.example.demo.service.UserService
@@ -31,10 +30,8 @@ class UserController(
     @PostMapping("/{id}/change-role")
     fun changeRole(
         @PathVariable id: Long,
-        @RequestBody request: ChangeRoleRequest
-    ): UserResponse {
-        return userService.changeRole(id, request.role)
-    }
+        @RequestBody request: Map<String, String>
+    ) = userService.changeRole(id, request["role"]!!)
 
     @PostMapping("/{id}/assign-department")
     fun assignDepartment(
