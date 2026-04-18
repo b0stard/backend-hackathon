@@ -2,7 +2,6 @@ package com.example.demo.controller
 
 import com.example.demo.dto.request.RegisterRequest
 import com.example.demo.dto.response.UserResponse
-import com.example.demo.entity.User
 import com.example.demo.service.UserService
 import org.springframework.web.bind.annotation.*
 
@@ -13,7 +12,7 @@ class UserController(
 ) {
 
     @GetMapping
-    fun getAll(): List<User> {
+    fun getAll(): List<UserResponse> {
         return userService.getAll()
     }
 

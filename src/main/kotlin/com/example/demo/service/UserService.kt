@@ -16,8 +16,8 @@ class UserService(
     private val passwordEncoder: PasswordEncoder
 ) {
 
-    fun getAll(): List<User> {
-        return userRepository.findAll()
+    fun getAll(): List<UserResponse> {
+        return userRepository.findAll().map { toResponse(it) }
     }
 
     fun create(request: RegisterRequest): UserResponse {
@@ -50,7 +50,7 @@ class UserService(
             .orElseThrow { RuntimeException("User not found") }
 
         val department = departmentRepository.findById(departmentId)
-            .orElse(null)
+            .orElseThrow { RuntimeException("Department not found") }
 
         user.department = department
 
