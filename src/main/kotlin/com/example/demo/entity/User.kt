@@ -24,7 +24,7 @@ data class User(
     @Column(nullable = false)
     var role: Role,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "department_id")
     var department: Department? = null,
 

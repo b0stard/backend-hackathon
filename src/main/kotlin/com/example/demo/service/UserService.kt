@@ -16,8 +16,8 @@ class UserService(
     private val passwordEncoder: PasswordEncoder
 ) {
 
-    fun getAll(): List<UserResponse> {
-        return userRepository.findAll().map { toResponse(it) }
+    fun getAll(): List<User> {
+        return userRepository.findAll()
     }
 
     fun create(request: RegisterRequest): UserResponse {

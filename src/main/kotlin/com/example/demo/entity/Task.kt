@@ -39,11 +39,11 @@ data class Task(
     @JoinColumn(name = "author_id", nullable = false)
     val author: User,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "assignee_id", nullable = false)
     var assignee: User,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "department_id", nullable = false)
     var department: Department
 )

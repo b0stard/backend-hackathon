@@ -24,7 +24,7 @@ data class TaskHistory(
     @Column(name = "new_value", columnDefinition = "text")
     var newValue: String? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "changed_by_user_id", nullable = false)
     var changedByUser: User,
 
