@@ -1,6 +1,7 @@
 package com.example.demo.service
 
 import com.example.demo.dto.response.UserResponse
+import com.example.demo.entity.Department
 import com.example.demo.entity.User
 import com.example.demo.enums.Role
 import com.example.demo.repository.DepartmentRepository
@@ -20,30 +21,36 @@ class UserService(
         return userRepository.findAll()
     }
 @Transactional
-    fun register(
-        name: String,
-        email: String,
-        password: String,
-        departmentName: String?
-    ): UserResponse {
-        if (userRepository.findByEmail(email) != null) {
-            throw RuntimeException("User with this email already exists")
-        }
+fun register(
+    name: String,
+    email: String,
+    password: String,
+    departmentName: String?
+): UserResponse {
 
-        val department = departmentName
-            ?.takeIf { it.isNotBlank() }
-            ?.let { departmentRepository.findByName(it) }
-
-        val user = User(
-            name = name,
-            email = email,
-            password = passwordEncoder.encode(password),
-            role = Role.USER,
-            department = department
-        )
-
-        return toResponse(userRepository.save(user))
+    if (userRepository.findByEmail(email) != null) {
+        throw RuntimeException("User with this email already exists")
     }
+
+    val department = if (!departmentName.isNullOrBlank()) {
+        departmentRepository.findByName(departmentName)
+            ?: departmentRepository.save(
+                Department(name = departmentName)
+            )
+    } else {
+        null
+    }
+
+    val user = User(
+        name = name,
+        email = email,
+        password = passwordEncoder.encode(password),
+        role = Role.USER,
+        department = department
+    )
+
+    return toResponse(userRepository.save(user))
+}
 
     fun changeRole(id: Long, role: String): UserResponse {
         val user = userRepository.findById(id)
@@ -54,12 +61,15 @@ class UserService(
         return toResponse(userRepository.save(user))
     }
 
-    fun assignDepartment(id: Long, departmentId: Long): UserResponse {
+    fun assignDepartmentByName(id: Long, departmentName: String): UserResponse {
+
         val user = userRepository.findById(id)
             .orElseThrow { RuntimeException("User not found") }
 
-        val department = departmentRepository.findById(departmentId)
-            .orElseThrow { RuntimeException("Department not found") }
+        val department = departmentRepository.findByName(departmentName)
+            ?: departmentRepository.save(
+                Department(name = departmentName)
+            )
 
         user.department = department
 

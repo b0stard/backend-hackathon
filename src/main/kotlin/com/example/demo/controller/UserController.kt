@@ -23,7 +23,12 @@ class UserController(
         @RequestParam password: String,
         @RequestParam(required = false) departmentName: String?
     ): UserResponse {
-        return userService.register(name, email, password, departmentName)
+        return userService.register(
+            name = name,
+            email = email,
+            password = password,
+            departmentName = departmentName
+        )
     }
 
     @PostMapping("/register")
@@ -33,7 +38,12 @@ class UserController(
         @RequestParam password: String,
         @RequestParam(required = false) departmentName: String?
     ): UserResponse {
-        return userService.register(name, email, password, departmentName)
+        return userService.register(
+            name = name,
+            email = email,
+            password = password,
+            departmentName = departmentName
+        )
     }
 
     @PostMapping("/{id}/change-role")
@@ -47,8 +57,8 @@ class UserController(
     @PostMapping("/{id}/assign-department")
     fun assignDepartment(
         @PathVariable id: Long,
-        @RequestParam departmentId: Long
+        @RequestParam departmentName: String
     ): UserResponse {
-        return userService.assignDepartment(id, departmentId)
+        return userService.assignDepartmentByName(id, departmentName)
     }
 }
