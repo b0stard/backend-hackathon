@@ -26,4 +26,10 @@ class DepartmentService(
             )
         }
     }
+    fun createDepartment(name : String): Department {
+        if(departmentRepository.findByName(name) != null) {
+            throw RuntimeException("A department with name $name already exists.")
+        }
+        return departmentRepository.save(Department(name = name))
+    }
 }
