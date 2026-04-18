@@ -2,11 +2,11 @@ package com.example.demo.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.web.SecurityFilterChain
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
-import org.springframework.security.config.annotation.web.builders.HttpSecurity
-import org.springframework.security.web.SecurityFilterChain
 
 @Configuration
 class SecurityConfig {
@@ -16,11 +16,15 @@ class SecurityConfig {
         return http
             .csrf { it.disable() }
             .cors { }
-            .authorizeHttpRequests { it.anyRequest().permitAll() }
+            .formLogin { it.disable() }
+            .httpBasic { it.disable() }
+            .authorizeHttpRequests {
+                it.anyRequest().permitAll()
+            }
             .build()
     }
 
-    // ✅ НАСТРОЙКА CORS
+
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val config = CorsConfiguration()
