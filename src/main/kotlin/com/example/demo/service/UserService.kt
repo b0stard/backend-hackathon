@@ -4,7 +4,6 @@ import com.example.demo.dto.request.RegisterRequest
 import com.example.demo.dto.response.UserResponse
 import com.example.demo.entity.User
 import com.example.demo.enums.Role
-import com.example.demo.exception.NotFoundException
 import com.example.demo.repository.DepartmentRepository
 import com.example.demo.repository.UserRepository
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -48,10 +47,10 @@ class UserService(
 
     fun assignDepartment(id: Long, departmentId: Long): UserResponse {
         val user = userRepository.findById(id)
-            .orElseThrow { NotFoundException("User not found") }
+            .orElseThrow { RuntimeException("User not found") }
 
         val department = departmentRepository.findById(departmentId)
-            .orElseThrow { NotFoundException("Department not found") }
+            .orElse(null)
 
         user.department = department
 
