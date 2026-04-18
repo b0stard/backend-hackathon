@@ -22,14 +22,8 @@ class TaskService(
 ) {
 
     fun getAll(): List<TaskResponse> {
-        return taskRepository.findAll().map {
-            TaskResponse(
-                id = it.id,
-                title = it.title,
-                userName = it.assignee?.name,
-                departmentName = it?.department?.name,
-            )
-        }
+        return taskRepository.findAll()
+            .map { it.toTaskResponse() }
     }
 
 
