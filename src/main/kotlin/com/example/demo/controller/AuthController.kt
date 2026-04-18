@@ -2,37 +2,48 @@ package com.example.demo.controller
 
 import com.example.demo.dto.request.LoginRequest
 import com.example.demo.dto.response.UserResponse
+import com.example.demo.repository.UserRepository
 import com.example.demo.service.AuthService
+import com.example.demo.service.TaskService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/auth")
 class AuthController(
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val userRepository: UserRepository,
+    private val passwordEncoder: BCryptPasswordEncoder
 ) {
 
     @PostMapping("/login")
     fun login(
-        @RequestBody request: LoginRequest,
-        response: HttpServletResponse
-    ): ResponseEntity<Any> {
-        return try {
-            ResponseEntity.ok(
-                authService.login(
-                    email = request.email,
-                    password = request.password,
-                    response = response
-                )
-            )
-        } catch (e: Exception) {
-            ResponseEntity.status(401).body(
-                mapOf("message" to (e.message ?: "Unauthorized"))
-            )
+        @RequestBody requestBody: LoginRequest,
+        request: HttpServletRequest
+    ): ResponseEntity<UserResponse> {
+        val user = userRepository.findByEmail(requestBody.email)
+            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+
+        if (!passwordEncoder.matches(requestBody.password, user.password)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         }
+
+        request.getSession(true).setAttribute("userId", user.id)
+
+        return ResponseEntity.ok(
+            UserResponse(
+                id = user.id!!,
+                name = user.name,
+                email = user.email,
+                role = user.role.name,
+                departmentId = user.department?.id,
+                departmentName = user.department?.name
+            )
+        )
     }
 
     @GetMapping("/me")
