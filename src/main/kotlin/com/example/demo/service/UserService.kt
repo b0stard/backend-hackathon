@@ -61,15 +61,13 @@ fun register(
         return toResponse(userRepository.save(user))
     }
 
-    fun assignDepartmentByName(id: Long, departmentName: String): UserResponse {
+    fun assignDepartment(id: Long, departmentId: Long): UserResponse {
 
         val user = userRepository.findById(id)
             .orElseThrow { RuntimeException("User not found") }
 
-        val department = departmentRepository.findByName(departmentName)
-            ?: departmentRepository.save(
-                Department(name = departmentName)
-            )
+        val department = departmentRepository.findById(departmentId)
+            .orElseThrow { RuntimeException("Department not found") }
 
         user.department = department
 

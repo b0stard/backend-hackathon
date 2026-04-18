@@ -57,8 +57,8 @@ class UserController(
     @PostMapping("/{id}/assign-department")
     fun assignDepartment(
         @PathVariable id: Long,
-        @RequestParam departmentName: String
+        @RequestParam departmentId: Long
     ): UserResponse {
-        return userService.assignDepartmentByName(id, departmentName)
+        return userService.assignDepartment(id, departmentId)
     }
 }
