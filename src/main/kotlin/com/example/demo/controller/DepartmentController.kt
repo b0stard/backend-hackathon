@@ -1,5 +1,7 @@
 package com.example.demo.controller
 
+import com.example.demo.dto.request.DepartmentRequest
+import com.example.demo.dto.request.RegisterRequest
 import com.example.demo.entity.Department
 import com.example.demo.repository.DepartmentRepository
 import com.example.demo.service.DepartmentService
@@ -26,7 +28,7 @@ class DepartmentController(
         return ResponseEntity.ok(department)
     }
     @PostMapping
-    fun create(@RequestParam name: String): Department {
-        return departmentService.createDepartment(name)
+    fun create(@RequestBody request : DepartmentRequest): Department {
+        return departmentService.createDepartment(request.name)
     }
 }
