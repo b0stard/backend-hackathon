@@ -30,8 +30,8 @@ class UserController(
     @PostMapping("/{id}/change-role")
     fun changeRole(
         @PathVariable id: Long,
-        @RequestBody request: Map<String, String>
-    ) = userService.changeRole(id, request["role"]!!)
+        @RequestParam role: String
+    ) = userService.changeRole(id, role)
 
     @PostMapping("/{id}/assign-department")
     fun assignDepartment(
