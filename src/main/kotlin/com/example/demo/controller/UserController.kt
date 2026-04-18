@@ -1,14 +1,11 @@
 package com.example.demo.controller
 
+import com.example.demo.dto.request.AssignDepartmentRequest
 import com.example.demo.dto.request.ChangeRoleRequest
 import com.example.demo.dto.request.RegisterRequest
+import com.example.demo.dto.response.UserResponse
 import com.example.demo.service.UserService
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/users")
@@ -17,21 +14,33 @@ class UserController(
 ) {
 
     @GetMapping
-    fun getAll() = userService.getAll()
+    fun getAll(): List<UserResponse> {
+        return userService.getAll()
+    }
 
     @PostMapping
-    fun create(@RequestBody request: RegisterRequest) =
-        userService.register(request)
+    fun create(@RequestBody request: RegisterRequest): UserResponse {
+        return userService.create(request)
+    }
+
+    @PostMapping("/register")
+    fun register(@RequestBody request: RegisterRequest): UserResponse {
+        return userService.create(request)
+    }
 
     @PostMapping("/{id}/change-role")
     fun changeRole(
         @PathVariable id: Long,
         @RequestBody request: ChangeRoleRequest
-    ) = userService.changeRole(id, request.role)
+    ): UserResponse {
+        return userService.changeRole(id, request.role)
+    }
 
     @PostMapping("/{id}/assign-department")
     fun assignDepartment(
         @PathVariable id: Long,
-        @RequestBody body: Map<String, Long>
-    ) = userService.assignDepartment(id, body["departmentId"]!!)
+        @RequestBody request: AssignDepartmentRequest
+    ): UserResponse {
+        return userService.assignDepartment(id, request.departmentId)
+    }
 }
