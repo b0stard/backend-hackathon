@@ -21,8 +21,15 @@ class TaskService(
     private val emailService: EmailService
 ) {
 
-    fun getAll(): List<Task> {
-        return taskRepository.findAll()
+    fun getAll(): List<TaskResponse> {
+        return taskRepository.findAll().map {
+            TaskResponse(
+                id = it.id,
+                title = it.title,
+                userName = it.assignee?.name,
+                departmentName = it?.department?.name,
+            )
+        }
     }
 
 
@@ -85,16 +92,8 @@ class TaskService(
         return TaskResponse(
             id = this.id,
             title = this.title,
-            shortDescription = this.description,
-            status = this.status.name,
-            priority = this.priority.name,
-            deadline = this.deadline,
-            createdAt = this.createdAt,
-            authorId = this.author.id,
-            authorName = this.author.name,
-            assigneeId = this.assignee.id,
-            assigneeName = this.assignee.name,
-            isOverdue = this.status != TaskStatus.DONE && this.deadline.isBefore(LocalDateTime.now())
+            userName = this.assignee?.name,
+            departmentName = this.assignee?.department?.name
         )
     }
 }
