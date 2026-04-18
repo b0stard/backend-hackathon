@@ -34,14 +34,8 @@ class AuthController(
     }
 
     @GetMapping("/me")
-    fun me(request: HttpServletRequest): ResponseEntity<Any> {
-        return try {
-            ResponseEntity.ok(authService.getCurrentUser(request))
-        } catch (e: Exception) {
-            ResponseEntity.status(401).body(
-                mapOf("message" to (e.message ?: "Not authorized"))
-            )
-        }
+    fun me(): String {
+        return "ok"
     }
 
     @PostMapping("/logout")
