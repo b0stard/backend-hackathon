@@ -26,7 +26,7 @@ class DepartmentController(
         return ResponseEntity.ok(department)
     }
     @PostMapping
-    fun create(@RequestBody department: Department): Department {
-        return departmentRepository.save(department)
+    fun create(@RequestParam name: String): Department {
+        return departmentService.createDepartment(name)
     }
 }
