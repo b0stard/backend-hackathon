@@ -9,8 +9,8 @@ class WebConfig : WebMvcConfigurer {
 
     override fun addCorsMappings(registry: CorsRegistry) {
         registry.addMapping("/**")
-            .allowedOrigins("http://localhost:5173")
-            .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+            .allowedOrigins("https://qitask.vercel.app")
+            .allowedMethods("*")
             .allowedHeaders("*")
             .allowCredentials(true)
     }
