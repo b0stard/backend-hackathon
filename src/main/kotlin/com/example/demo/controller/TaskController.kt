@@ -2,7 +2,7 @@ package com.example.demo.controller
 
 import com.example.demo.dto.request.CreateTaskRequest
 import com.example.demo.dto.request.UpdateTaskStatusRequest
-import com.example.demo.enums.TaskPriority
+import com.example.demo.entity.Task
 import com.example.demo.service.TaskService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -14,19 +14,9 @@ class TaskController(
 ) {
 
     @GetMapping
-    fun getTasks(
-        @RequestParam(required = false) assigneeId: Long?,
-        @RequestParam(required = false) priority: TaskPriority?,
-        @RequestParam(required = false) title: String?
-    ): ResponseEntity<Any> {
+    fun getAll(): List<Task> {
+        return taskService.getAll()
 
-        return ResponseEntity.ok(
-            taskService.getTasks(
-                assigneeId,
-                priority,
-                title
-            )
-        )
     }
 
     @GetMapping("/{id}")
